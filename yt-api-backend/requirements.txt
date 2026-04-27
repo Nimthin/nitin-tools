@@ -1,4 +1,4 @@
 flask==3.1.1
 flask-cors==5.0.1
-yt-dlp>=2024.12.1
+yt-dlp @ git+https://github.com/yt-dlp/yt-dlp.git@master
 gunicorn==23.0.0
