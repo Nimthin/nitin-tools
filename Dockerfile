@@ -9,11 +9,11 @@ RUN apt-get update && \
 WORKDIR /app
 
 # Install dependencies
-COPY requirements.txt .
+COPY yt-api-backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY . .
+COPY yt-api-backend/ .
 
 # Run gunicorn
 # Note: Render provides the PORT environment variable
