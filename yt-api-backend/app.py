@@ -39,6 +39,7 @@ def get_info():
             'quiet': True,
             'no_warnings': True,
             'skip_download': True,
+            'extractor_args': {'youtube': ['player_client=android']},
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -79,6 +80,7 @@ def download_mp3():
             'quiet': True,
             'no_warnings': True,
             'format': 'bestaudio/best',
+            'extractor_args': {'youtube': ['player_client=android']},
             'outtmpl': output_path + '.%(ext)s',
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
