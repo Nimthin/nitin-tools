@@ -1,0 +1,323 @@
+/* ==========================================
+   PDF PAGE REMOVER — Tool-specific styles
+   Edit this file when working on the PDF tool
+   ========================================== */
+
+/* Upload Zone */
+.upload-zone {
+  position: relative;
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4xl) var(--space-xl);
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  background: var(--bg-glass);
+  animation: fadeInUp 0.6s var(--ease-apple) 0.1s both;
+}
+
+.upload-zone:hover,
+.upload-zone.drag-over {
+  border-color: var(--accent);
+  background: rgba(41, 151, 255, 0.03);
+}
+
+[data-theme="light"] .upload-zone:hover,
+[data-theme="light"] .upload-zone.drag-over {
+  background: rgba(0, 113, 227, 0.03);
+}
+
+.upload-zone-icon {
+  font-size: 3rem;
+  margin-bottom: var(--space-lg);
+  opacity: 0.5;
+  transition: all var(--transition-normal);
+}
+
+.upload-zone:hover .upload-zone-icon {
+  opacity: 0.8;
+  transform: translateY(-4px);
+}
+
+.upload-zone-text {
+  font-size: 1.05rem;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: var(--text-primary);
+}
+
+.upload-zone-hint {
+  font-size: 0.825rem;
+  color: var(--text-tertiary);
+}
+
+.upload-zone-browse {
+  color: var(--text-link);
+  font-weight: 500;
+}
+
+/* File Info Bar */
+.file-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  padding: 14px var(--space-lg);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-xl);
+  animation: fadeInUp 0.4s var(--ease-apple);
+  transition: background-color var(--transition-theme), border-color var(--transition-theme);
+}
+
+.file-info-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.file-info-icon {
+  width: 40px;
+  height: 40px;
+  background: var(--danger-soft);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+}
+
+.file-info-name {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+}
+
+.file-info-meta {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.file-info-actions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+/* Page Grid */
+.page-grid-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.page-grid-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.page-grid-hint {
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+}
+
+.page-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+  gap: var(--space-md);
+  margin-bottom: var(--space-2xl);
+}
+
+/* Page Thumbnails */
+.page-thumb {
+  position: relative;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid var(--border-color);
+  transition: all var(--transition-normal);
+  background: var(--bg-secondary);
+  aspect-ratio: 8.5 / 11;
+  box-shadow: var(--shadow-sm);
+}
+
+.page-thumb:hover {
+  border-color: var(--border-hover);
+  transform: scale(1.03);
+  box-shadow: var(--shadow-md);
+}
+
+.page-thumb.selected {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 1px var(--danger), var(--shadow-md);
+  transform: scale(0.97);
+}
+
+.page-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.page-thumb-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 59, 48, 0.3);
+  backdrop-filter: blur(1px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.page-thumb.selected .page-thumb-overlay {
+  opacity: 1;
+}
+
+.page-thumb-x {
+  width: 36px;
+  height: 36px;
+  background: var(--danger);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: white;
+  box-shadow: 0 2px 8px rgba(255, 59, 48, 0.4);
+  transform: scale(0.6);
+  transition: transform var(--transition-normal);
+}
+
+.page-thumb.selected .page-thumb-x {
+  transform: scale(1);
+}
+
+.page-thumb-number {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 5px;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(8px);
+  font-size: 0.7rem;
+  text-align: center;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.page-thumb.selected .page-thumb-number {
+  background: var(--danger);
+  color: white;
+  font-weight: 600;
+}
+
+/* Action Bar */
+.action-bar {
+  position: sticky;
+  bottom: var(--space-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  padding: 14px var(--space-xl);
+  background: var(--bg-overlay);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--danger-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  animation: slideUp 0.4s var(--ease-bounce);
+  z-index: 50;
+  transition: background-color var(--transition-theme);
+}
+
+.action-bar-info {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.action-bar-info strong {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.action-bar-buttons {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.select-buttons {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+/* PDF Responsive */
+@media (max-width: 768px) {
+  .page-grid {
+    grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+    gap: var(--space-sm);
+  }
+
+  .upload-zone {
+    padding: var(--space-3xl) var(--space-md);
+    border-radius: var(--radius-lg);
+  }
+
+  .file-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .action-bar {
+    flex-direction: column;
+    text-align: center;
+    border-radius: var(--radius-lg);
+    bottom: var(--space-sm);
+    margin: 0 var(--space-xs);
+  }
+
+  .action-bar-buttons {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .page-grid-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (hover: none) {
+  .page-thumb:hover {
+    transform: none;
+  }
+
+  .page-thumb:active {
+    transform: scale(0.96);
+  }
+
+  .upload-zone:hover .upload-zone-icon {
+    transform: none;
+    opacity: 0.5;
+  }
+}
