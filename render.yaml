@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: yt-api-backend
+    env: docker
+    rootDir: yt-api-backend
+    dockerfilePath: ./Dockerfile
+    autoDeploy: true
