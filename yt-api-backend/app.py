@@ -39,7 +39,7 @@ def get_info():
             'quiet': True,
             'no_warnings': True,
             'skip_download': True,
-            'impersonate': 'chrome',
+            'impersonate': 'chrome110',
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -80,7 +80,7 @@ def download_mp3():
             'quiet': True,
             'no_warnings': True,
             'format': 'bestaudio/best',
-            'impersonate': 'chrome',
+            'impersonate': 'chrome110',
             'outtmpl': output_path + '.%(ext)s',
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
