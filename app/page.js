@@ -2,10 +2,16 @@ import ToolCard from '@/components/ToolCard';
 
 const tools = [
   {
-    title: 'PDF Page Remover',
-    description: 'Upload a PDF, select the pages you want to remove, and download a clean copy. Fast, private — processed entirely in your browser.',
+    title: 'Image Toolkit',
+    description: 'A collection of image utilities: Remove backgrounds with AI, or extract text from any picture. Processed entirely and privately in your browser.',
+    icon: '🖼️',
+    href: '/tools/image',
+  },
+  {
+    title: 'PDF Toolkit',
+    description: 'A collection of PDF utilities: Remove pages, or convert multiple images into a single PDF document. All processed securely in your browser.',
     icon: '📄',
-    href: '/tools/pdf-page-remover',
+    href: '/tools/pdf',
   },
   {
     title: 'YouTube to MP3',
@@ -13,25 +19,17 @@ const tools = [
     icon: '🎵',
     href: '/tools/youtube-audio',
   },
-  // Add more tools here
 ];
 
 export default function Home() {
   return (
     <>
       <section className="hero">
-        <div className="hero-badge">
-          <span className="hero-badge-dot"></span>
-          All tools run locally in your browser
-        </div>
-        <h1>
-          Your Personal<br />
+        <h1 className="hero-animated-title">
+          <span className="hero-title-line">Your Personal</span>
+          <br />
           <span className="hero-gradient-text">Toolkit</span>
         </h1>
-        <p>
-          Small, fast utility tools that handle everyday tasks.
-          No uploads to servers, no sign-ups, no nonsense.
-        </p>
       </section>
 
       <section className="tools-section">

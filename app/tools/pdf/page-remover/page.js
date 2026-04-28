@@ -121,6 +121,9 @@ export default function PdfPageRemover() {
     try {
       const modifiedPdf = await removePages(pdfData.pdfBytes, selectedPages);
       await downloadPdf(modifiedPdf, pdfData.fileName);
+      
+      // Auto-clear the state after successful download
+      handleReset();
     } catch (err) {
       console.error(err);
       setError('Failed to process the PDF. Please try again.');
@@ -140,8 +143,8 @@ export default function PdfPageRemover() {
 
   return (
     <div className="tool-page">
-      <Link href="/" className="tool-page-back">
-        ← Back to tools
+      <Link href="/tools/pdf" className="tool-page-back">
+        ← Back to PDF Toolkit
       </Link>
 
       <div className="tool-page-header">

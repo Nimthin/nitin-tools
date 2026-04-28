@@ -1,0 +1,166 @@
+.ocr-container {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2xl);
+  margin-top: var(--space-xl);
+  min-height: 400px;
+}
+
+.ocr-workspace {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-xl);
+}
+
+.ocr-preview-panel, .ocr-result-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.ocr-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-md);
+}
+
+.ocr-preview-header h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.ocr-image-wrapper {
+  position: relative;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  background: var(--bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 500px;
+}
+
+.ocr-preview-image {
+  max-width: 100%;
+  max-height: 65vh;
+  object-fit: contain;
+  display: block;
+}
+
+.ocr-text-area {
+  flex: 1;
+  min-height: 500px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.ocr-text-area.empty {
+  background: var(--bg-tertiary);
+  justify-content: center;
+  align-items: center;
+}
+
+.ocr-textarea {
+  flex: 1;
+  width: 100%;
+  padding: var(--space-lg);
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  resize: vertical;
+  outline: none;
+}
+
+.ocr-empty-text {
+  color: var(--text-tertiary);
+  font-size: 1.1rem;
+  text-align: center;
+  padding: var(--space-xl);
+}
+
+.ocr-processing-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
+  color: var(--text-secondary);
+  height: 100%;
+}
+
+@media (max-width: 768px) {
+  .ocr-workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Upload Zone */
+.upload-zone {
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4xl) var(--space-xl);
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  background: var(--bg-glass);
+}
+
+.upload-zone:hover, .upload-zone.drag-over {
+  border-color: var(--accent);
+  background: rgba(41, 151, 255, 0.05);
+}
+
+.upload-zone-icon {
+  font-size: 3rem;
+  margin-bottom: var(--space-md);
+  opacity: 0.8;
+}
+
+.upload-zone-text {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+}
+
+.upload-zone-browse {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+/* Scanner Animation Overlay */
+.scanner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(41, 151, 255, 0.1);
+  pointer-events: none;
+  z-index: 5;
+  overflow: hidden;
+}
+
+.scanner-line {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: var(--accent);
+  box-shadow: 0 0 15px var(--accent), 0 0 30px var(--accent);
+  animation: scanLine 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes scanLine {
+  0% { top: 0%; }
+  100% { top: calc(100% - 3px); }
+}
