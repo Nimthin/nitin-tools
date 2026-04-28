@@ -1,19 +1,14 @@
 /**
  * YouTube Audio Downloader — Tool Logic
- * Uses our own yt-dlp backend to extract audio streams
+ * Uses Next.js API route (/api/cobalt) powered by @distube/ytdl-core.
+ * No external backend required.
  */
-
-// Backend URL — change this after deploying to Render
-const API_URL = process.env.NEXT_PUBLIC_YT_API_URL || 'http://localhost:5000';
 
 /**
- * Available audio quality options
+ * Available audio quality options (cosmetic labels — we always fetch best)
  */
 export const QUALITY_OPTIONS = [
-  { value: '320', label: '320 kbps', description: 'Best quality', badge: 'HQ' },
-  { value: '256', label: '256 kbps', description: 'High quality', badge: null },
-  { value: '192', label: '192 kbps', description: 'Standard', badge: null },
-  { value: '128', label: '128 kbps', description: 'Compact', badge: null },
+  { value: 'best', label: 'Best Quality', description: 'Highest available', badge: 'HQ' },
 ];
 
 /**
@@ -37,7 +32,7 @@ export function isValidYouTubeUrl(url) {
 export function extractVideoId(url) {
   if (!url) return null;
   const match = url.match(
-    /(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]+)/
+    /(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\\w-]+)/
   );
   return match ? match[1] : null;
 }
@@ -65,13 +60,13 @@ export function formatDuration(seconds) {
 }
 
 /**
- * Fetch video information (fast)
+ * Fetch video information via our own API route (fast, no download)
  */
 export async function getVideoInfo(url) {
-  const response = await fetch(`${API_URL}/info`, {
+  const response = await fetch('/api/cobalt', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ url: url.trim() }),
+    body: JSON.stringify({ action: 'info', url: url.trim() }),
   });
 
   const data = await response.json();
@@ -86,27 +81,30 @@ export async function getVideoInfo(url) {
 /**
  * Request audio download and trigger saving
  */
-export async function downloadAudio(url, bitrate, title = 'audio') {
-  const response = await fetch(`${API_URL}/download`, {
+export async function downloadAudio(url, _quality, title = 'audio') {
+  const response = await fetch('/api/cobalt', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ url: url.trim(), bitrate }),
+    body: JSON.stringify({ action: 'download', url: url.trim() }),
   });
 
   if (!response.ok) {
     try {
       const errorData = await response.json();
       throw new Error(errorData.message || 'Download failed');
-    } catch {
-      throw new Error(`Download failed with status ${response.status}`);
+    } catch (e) {
+      if (e instanceof SyntaxError) {
+        throw new Error(`Download failed (status ${response.status})`);
+      }
+      throw e;
     }
   }
 
   // Handle file download
   const blob = await response.blob();
-  
+
   // Try to get filename from Content-Disposition header
-  let filename = `${title}.mp3`;
+  let filename = `${title}.m4a`;
   const disposition = response.headers.get('Content-Disposition');
   if (disposition && disposition.includes('filename=')) {
     const filenameMatch = disposition.match(/filename="?([^"]+)"?/);
@@ -121,8 +119,8 @@ export async function downloadAudio(url, bitrate, title = 'audio') {
       const handle = await window.showSaveFilePicker({
         suggestedName: filename,
         types: [{
-          description: 'MP3 Audio File',
-          accept: { 'audio/mpeg': ['.mp3'] },
+          description: 'Audio File',
+          accept: { 'audio/*': ['.m4a', '.weba', '.webm', '.mp4'] },
         }],
       });
       const writable = await handle.createWritable();
@@ -144,7 +142,7 @@ export async function downloadAudio(url, bitrate, title = 'audio') {
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  
+
   // Cleanup
   setTimeout(() => URL.revokeObjectURL(objectUrl), 10000);
 }

@@ -1,5 +1,0 @@
-services:
-  - type: web
-    name: yt-api-backend
-    env: docker
-    autoDeploy: true

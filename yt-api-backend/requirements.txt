@@ -1,5 +1,0 @@
-flask==3.1.1
-flask-cors==5.0.1
-yt-dlp @ git+https://github.com/yt-dlp/yt-dlp.git@master
-curl-cffi==0.7.1
-gunicorn==23.0.0

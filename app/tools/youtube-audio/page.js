@@ -5,11 +5,9 @@ import Link from 'next/link';
 import {
   isValidYouTubeUrl,
   extractVideoId,
-  getThumbnailUrl,
   getVideoInfo,
   downloadAudio,
   formatDuration,
-  QUALITY_OPTIONS,
 } from '@/tools-logic/youtubeAudioDownloader';
 import { RANDOM_FACTS } from '@/tools-logic/facts';
 import './youtube-tool.css';
@@ -17,14 +15,13 @@ import './youtube-tool.css';
 export default function YouTubeAudioDownloader() {
   const [url, setUrl] = useState('');
   const [videoId, setVideoId] = useState(null);
-  const [selectedQuality, setSelectedQuality] = useState('192');
-  
+
   const [isFetchingInfo, setIsFetchingInfo] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
-  
+
   const [videoInfo, setVideoInfo] = useState(null);
   const [error, setError] = useState(null);
-  
+
   const [currentFact, setCurrentFact] = useState('');
   const inputRef = useRef(null);
 
@@ -37,12 +34,11 @@ export default function YouTubeAudioDownloader() {
         setError(null);
         setVideoInfo(null);
         setIsFetchingInfo(true);
-        
+
         try {
           const info = await getVideoInfo(url);
           setVideoInfo(info);
         } catch (err) {
-          // Ignore fetch errors if they happen because the connection was aborted or blocked by a concurrent download request
           if (err.message !== 'Failed to fetch' && !err.message.includes('aborted')) {
             setError(err.message || 'Failed to fetch video details.');
           }
@@ -64,30 +60,28 @@ export default function YouTubeAudioDownloader() {
   useEffect(() => {
     let interval;
     if (isDownloading) {
-      // Pick a random fact immediately
       setCurrentFact(RANDOM_FACTS[Math.floor(Math.random() * RANDOM_FACTS.length)]);
-      
-      // Rotate every 6 seconds
+
       interval = setInterval(() => {
         setCurrentFact(RANDOM_FACTS[Math.floor(Math.random() * RANDOM_FACTS.length)]);
       }, 6000);
     } else {
       setCurrentFact('');
     }
-    
+
     return () => clearInterval(interval);
   }, [isDownloading]);
 
   const handleDownload = async () => {
     if (!videoInfo) return;
-    
+
     setError(null);
     setIsDownloading(true);
 
     try {
-      await downloadAudio(url, selectedQuality, videoInfo.title);
+      await downloadAudio(url, 'best', videoInfo.title);
     } catch (err) {
-      setError(err.message || 'Download failed. Our backend might be busy.');
+      setError(err.message || 'Download failed. Please try again.');
     } finally {
       setIsDownloading(false);
     }
@@ -118,9 +112,9 @@ export default function YouTubeAudioDownloader() {
       </Link>
 
       <div className="tool-page-header">
-        <h1>🎵 YouTube to MP3</h1>
+        <h1>🎵 YouTube Audio Downloader</h1>
         <p>
-          Paste a YouTube link, pick your quality, and download directly as an MP3.
+          Paste a YouTube link and download the audio directly.
         </p>
       </div>
 
@@ -195,25 +189,6 @@ export default function YouTubeAudioDownloader() {
           </div>
 
           <div className="yt-options" style={{ marginTop: '2rem' }}>
-            <div className="yt-option-group">
-              <div className="yt-option-label" style={{ textAlign: 'left' }}>Audio Quality</div>
-              <div className="yt-quality-grid">
-                {QUALITY_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    className={`yt-quality-btn ${selectedQuality === opt.value ? 'active' : ''}`}
-                    onClick={() => setSelectedQuality(opt.value)}
-                    type="button"
-                    disabled={isDownloading}
-                  >
-                    <span className="yt-quality-value">{opt.label}</span>
-                    <span className="yt-quality-desc">{opt.description}</span>
-                    {opt.badge && <span className="yt-quality-badge">{opt.badge}</span>}
-                  </button>
-                ))}
-              </div>
-            </div>
-
             <button
               className="yt-download-btn"
               onClick={handleDownload}
@@ -223,29 +198,26 @@ export default function YouTubeAudioDownloader() {
                 <>
                   <span className="spinner" style={{ width: 18, height: 18, borderWidth: 2, borderColor: 'rgba(255,255,255,0.3)', borderTopColor: '#fff' }}></span>
                   <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.95rem' }}>Converting & Downloading...</span>
+                    <span style={{ fontSize: '0.95rem' }}>Downloading audio...</span>
                   </span>
                 </>
               ) : (
                 <>
                   <span style={{ fontSize: '1.2rem' }}>⬇</span>
-                  <span>Download MP3</span>
+                  <span>Download Audio</span>
                 </>
               )}
             </button>
-            
+
             {/* Fact Display while downloading */}
             {isDownloading && (
-              <div 
-                className="yt-fact-box" 
-              >
+              <div className="yt-fact-box">
                 <div style={{ fontWeight: '600', marginBottom: '8px', color: 'var(--text-primary)' }}>Did you know?</div>
                 <div className="yt-fact-text" key={currentFact}>
                   {currentFact}
                 </div>
               </div>
             )}
-            
           </div>
         </div>
       )}
