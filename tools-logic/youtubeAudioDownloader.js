@@ -88,61 +88,20 @@ export async function downloadAudio(url, _quality, title = 'audio') {
     body: JSON.stringify({ action: 'download', url: url.trim() }),
   });
 
-  if (!response.ok) {
-    try {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Download failed');
-    } catch (e) {
-      if (e instanceof SyntaxError) {
-        throw new Error(`Download failed (status ${response.status})`);
-      }
-      throw e;
-    }
+  const data = await response.json();
+
+  if (data.status !== 'success') {
+    throw new Error(data.message || 'Download failed');
   }
 
-  // Handle file download
-  const blob = await response.blob();
-
-  // Try to get filename from Content-Disposition header
-  let filename = `${title}.m4a`;
-  const disposition = response.headers.get('Content-Disposition');
-  if (disposition && disposition.includes('filename=')) {
-    const filenameMatch = disposition.match(/filename="?([^"]+)"?/);
-    if (filenameMatch && filenameMatch.length === 2) {
-      filename = filenameMatch[1];
-    }
-  }
-
-  // Use File System Access API if available to let the user pick the save path
-  if (window.showSaveFilePicker) {
-    try {
-      const handle = await window.showSaveFilePicker({
-        suggestedName: filename,
-        types: [{
-          description: 'Audio File',
-          accept: { 'audio/*': ['.m4a', '.weba', '.webm', '.mp4'] },
-        }],
-      });
-      const writable = await handle.createWritable();
-      await writable.write(blob);
-      await writable.close();
-      return; // Success, skip fallback
-    } catch (err) {
-      // If user cancelled the picker gently return without error
-      if (err.name === 'AbortError') return;
-      console.warn('Save picker failed, falling back to auto-download', err);
-    }
-  }
-
-  // Fallback: Create Object URL and trigger standard browser download
-  const objectUrl = URL.createObjectURL(blob);
+  // Create Object URL and trigger standard browser download
+  const downloadUrl = data.url;
   const a = document.createElement('a');
-  a.href = objectUrl;
-  a.download = filename;
+  a.href = downloadUrl;
+  a.download = `${title}.mp3`;
+  // Force target blank in case of cross-origin issues
+  a.target = '_blank';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-
-  // Cleanup
-  setTimeout(() => URL.revokeObjectURL(objectUrl), 10000);
 }
