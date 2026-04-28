@@ -24,6 +24,18 @@ export default function BackgroundRemover() {
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
 
+  // Load @imgly/background-removal from CDN to avoid Webpack bundling issues
+  useEffect(() => {
+    if (window.imglyRemoveBackground) return; // already loaded
+    const script = document.createElement('script');
+    script.type = 'module';
+    script.textContent = `
+      import { removeBackground } from 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.3/dist/index.mjs';
+      window.imglyRemoveBackground = removeBackground;
+    `;
+    document.head.appendChild(script);
+  }, []);
+
   const handleFile = (file) => {
     if (!file || !file.type.startsWith('image/')) {
       setError('Please upload a valid image file (JPG, PNG, WebP).');
@@ -64,14 +76,12 @@ export default function BackgroundRemover() {
     setProgress(0);
 
     try {
-      const imglyPkg = await import('@imgly/background-removal');
-      const imglyRemoveBackground = imglyPkg.default || imglyPkg.removeBackground || imglyPkg;
-
-      if (typeof imglyRemoveBackground !== 'function') {
-        throw new Error('Could not resolve imgly function.');
+      // The library is loaded globally via Script tag in the component
+      if (typeof window === 'undefined' || !window.imglyRemoveBackground) {
+        throw new Error('Background removal library not loaded yet.');
       }
 
-      const blob = await imglyRemoveBackground(image.file, {
+      const blob = await window.imglyRemoveBackground(image.file, {
         progress: (key, current, total) => {
           if (total) {
             const pct = Math.round((current / total) * 100);
@@ -241,6 +251,7 @@ export default function BackgroundRemover() {
   };
 
   return (
+    <>
     <div className="tool-page">
       <Link href="/tools/image" className="tool-page-back">
         ← Back to Image Toolkit
@@ -417,5 +428,6 @@ export default function BackgroundRemover() {
         )}
       </div>
     </div>
+    </>
   );
 }
