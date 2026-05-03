@@ -78,6 +78,7 @@ export default function Header() {
             <Link href="/tools/pdf" className="apple-nav-link">PDFs</Link>
             <Link href="/tools/image" className="apple-nav-link">Images</Link>
             <Link href="/tools/youtube-audio" className="apple-nav-link">Audio</Link>
+            <Link href="/tools/file-converter" className="apple-nav-link">Convert</Link>
             <button className="apple-nav-link feedback-btn" onClick={() => setIsFeedbackOpen(true)}>
               Feedback
             </button>

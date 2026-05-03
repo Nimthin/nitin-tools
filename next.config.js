@@ -1,8 +1,14 @@
 /** @type {import('next').NextConfig} */
+const path = require('path');
+
 const nextConfig = {
   webpack: (config, { isServer }) => {
     config.resolve.alias.canvas = false;
     config.resolve.alias.encoding = false;
+    config.resolve.alias['util-deprecate'] = path.resolve(
+      __dirname,
+      'webpack-shims/util-deprecate.js'
+    );
     
     if (!isServer) {
       config.resolve.fallback = {

@@ -19,6 +19,13 @@ const tools = [
     icon: '🎵',
     href: '/tools/youtube-audio',
   },
+  {
+    title: 'File converter',
+    description:
+      'Change a file into another format — reports, spreadsheets, photos, music, or video. Everything happens privately on your computer.',
+    icon: '🔄',
+    href: '/tools/file-converter',
+  },
 ];
 
 export default function Home() {

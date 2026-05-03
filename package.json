@@ -10,11 +10,22 @@
   },
   "dependencies": {
     "@distube/ytdl-core": "^4.16.12",
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2",
+    "docx": "^9.6.1",
+    "fast-xml-parser": "^5.7.2",
+    "fflate": "^0.8.2",
+    "heic2any": "^0.0.4",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.1",
+    "mammoth": "^1.12.0",
+    "marked": "^18.0.3",
     "next": "^14.2.0",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^3.11.174",
     "react": "^18.3.0",
-    "react-dom": "^18.3.0"
+    "react-dom": "^18.3.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "eslint": "^8.0.0",
