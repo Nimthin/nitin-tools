@@ -1,6 +1,7 @@
 import './globals.css';
 import Header from '@/components/Header';
 import ThemeProvider from '@/components/ThemeProvider';
+import Chatbot from '@/components/Chatbot';
 
 export const metadata = {
   title: 'Nitin Tools — Personal Utility Toolkit',
@@ -15,8 +16,9 @@ export default function RootLayout({ children }) {
           <Header />
           <main>{children}</main>
           <footer className="footer">
-            Built with ❤️ for personal productivity
+            Built with ❤️ for you
           </footer>
+          <Chatbot />
         </ThemeProvider>
       </body>
     </html>
