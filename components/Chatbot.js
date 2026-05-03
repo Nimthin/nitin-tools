@@ -59,9 +59,17 @@ export default function Chatbot() {
     <div className="chatbot-wrapper">
       {/* Chat Window */}
       <div className={`chatbot-window ${isOpen ? 'open' : ''}`}>
+        <div className="chatbot-bg">
+          <div className="chatbot-bg-gradient"></div>
+          <div className="chatbot-bg-glass"></div>
+        </div>
         <div className="chatbot-header">
           <div className="chatbot-header-title">
-            <span className="chatbot-icon">🤖</span>
+            <img 
+              src="https://i.pinimg.com/originals/2d/4f/08/2d4f086717206448db0e61fb91774ae1.gif" 
+              alt="AI"
+              style={{ width: '24px', height: '24px', borderRadius: '50%', objectFit: 'cover' }}
+            />
             Toolkit Assistant
           </div>
           <button className="chatbot-close" onClick={toggleChat}>✕</button>
@@ -103,9 +111,11 @@ export default function Chatbot() {
         onClick={toggleChat}
         aria-label="Open Chat"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
-          <path d="M12 2C6.477 2 2 6.477 2 12c0 1.821.487 3.53 1.338 5L2.5 21.5l4.5-.838A9.955 9.955 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z" />
-        </svg>
+        <img 
+          src="https://i.pinimg.com/originals/2d/4f/08/2d4f086717206448db0e61fb91774ae1.gif" 
+          alt="Chatbot Assistant"
+          style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
+        />
       </button>
     </div>
   );

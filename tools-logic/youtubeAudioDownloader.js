@@ -94,14 +94,16 @@ export async function downloadAudio(url, _quality, title = 'audio') {
     throw new Error(data.message || 'Download failed');
   }
 
-  // Create Object URL and trigger standard browser download
-  const downloadUrl = data.url;
-  const a = document.createElement('a');
-  a.href = downloadUrl;
-  a.download = `${title}.mp3`;
-  // Force target blank in case of cross-origin issues
-  a.target = '_blank';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  // Create an invisible iframe to trigger the download without opening a new tab
+  const iframe = document.createElement('iframe');
+  iframe.style.display = 'none';
+  iframe.src = data.url;
+  document.body.appendChild(iframe);
+  
+  // Clean up the iframe after a short delay
+  setTimeout(() => {
+    if (document.body.contains(iframe)) {
+      document.body.removeChild(iframe);
+    }
+  }, 5000);
 }

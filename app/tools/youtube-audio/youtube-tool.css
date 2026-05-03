@@ -85,6 +85,23 @@
   opacity: 1;
 }
 
+.yt-search-btn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.yt-search-btn:hover {
+  background: var(--accent-hover);
+}
+
 /* Video Preview (before extract) */
 .yt-preview {
   display: flex;
@@ -263,6 +280,215 @@
   margin-top: var(--space-md);
 }
 
+/* Search Results Grid */
+.yt-search-results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+.yt-search-card {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.yt-search-thumb-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: black;
+}
+
+.yt-search-thumb-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.9;
+  transition: opacity 0.2s;
+}
+
+.yt-search-thumb-wrapper:hover img {
+  opacity: 1;
+}
+
+.yt-search-thumb-wrapper iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.yt-search-duration {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(0,0,0,0.8);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.yt-search-preview-btn {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  color: white;
+  z-index: 3;
+  cursor: pointer;
+  border: none;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+}
+
+.yt-search-thumb-wrapper:hover .yt-search-preview-btn {
+  opacity: 1;
+}
+
+.yt-search-preview-btn:hover {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.yt-search-preview-btn svg {
+  background: var(--accent);
+  border-radius: 50%;
+  padding: 12px;
+  width: 54px;
+  height: 54px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s;
+}
+
+.yt-search-preview-btn:hover svg {
+  transform: scale(1.1);
+}
+
+.yt-search-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.yt-premium-result-container {
+  display: flex;
+  gap: 32px;
+  align-items: stretch;
+  max-width: 850px;
+  margin: 2rem auto;
+  background: var(--bg-secondary);
+  padding: 32px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.yt-premium-result-container:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+.yt-premium-result-left {
+  flex-shrink: 0;
+}
+
+.yt-premium-result-right {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.yt-premium-metadata {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.yt-premium-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.yt-premium-artist {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.yt-premium-stats {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.yt-premium-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  color: var(--text-tertiary);
+  background: var(--bg-tertiary);
+  padding: 6px 12px;
+  border-radius: 20px;
+}
+
+.yt-premium-dl-btn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 16px 24px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transition: all 0.2s;
+  margin-top: auto;
+}
+
+.yt-premium-dl-btn:hover:not(:disabled) {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 700px) {
+  .yt-premium-result-container {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .yt-premium-metadata {
+    align-items: center;
+  }
+}
+
 /* Video info card */
 .yt-result-video {
   display: flex;
@@ -428,6 +654,224 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* ==========================================
+   TRENDING MUSIC CHART
+   ========================================== */
+.yt-trending-section {
+  padding-top: var(--space-md);
+  animation: fadeInUp 0.6s var(--ease-apple) 0.3s both;
+}
+
+.yt-trending-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: var(--space-lg);
+}
+
+.yt-trending-carousel-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.yt-carousel-btn {
+  position: absolute;
+  top: 90px; /* half of 180px album art */
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(30, 30, 30, 0.9);
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  transition: all var(--transition-fast);
+}
+
+.yt-carousel-btn:hover {
+  background: rgba(60, 60, 60, 0.95);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.yt-carousel-left {
+  left: -16px;
+}
+
+.yt-carousel-right {
+  right: -16px;
+}
+
+.yt-trending-row {
+  display: flex;
+  gap: var(--space-lg);
+  overflow-x: auto;
+  padding-bottom: var(--space-xl);
+  scroll-behavior: smooth;
+  /* Hide scrollbar for a cleaner look */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.yt-trending-row::-webkit-scrollbar {
+  display: none;
+}
+
+.yt-trending-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  width: 180px;
+  flex-shrink: 0;
+  transition: transform var(--transition-fast);
+}
+
+.yt-trending-card:hover {
+  transform: translateY(-4px);
+}
+
+.yt-trending-thumb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-tertiary);
+  box-shadow: var(--shadow-md);
+}
+
+.yt-trending-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-normal);
+}
+
+.yt-trending-card:hover .yt-trending-thumb img {
+  transform: scale(1.05);
+}
+
+.yt-trending-thumb img.playing {
+  transform: scale(1.05);
+  filter: brightness(0.7);
+}
+
+.yt-trending-rank-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  color: white;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 0.8rem;
+  font-weight: 800;
+  z-index: 2;
+}
+
+.yt-trending-play-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  color: white;
+  z-index: 3;
+  cursor: pointer;
+  border: none;
+}
+
+.yt-trending-card:hover .yt-trending-play-overlay,
+.yt-trending-play-overlay.active {
+  opacity: 1;
+}
+
+.yt-trending-play-overlay:hover {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.yt-trending-play-overlay svg {
+  background: #1DB954; /* Spotify Green */
+  color: black;
+  border-radius: 50%;
+  padding: 10px;
+  width: 48px;
+  height: 48px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s;
+}
+
+.yt-trending-play-overlay:hover svg {
+  transform: scale(1.1);
+}
+
+.yt-trending-dl-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  color: white;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  z-index: 4;
+  cursor: pointer;
+  border: none;
+  opacity: 0;
+  transition: all var(--transition-fast);
+}
+
+.yt-trending-card:hover .yt-trending-dl-badge,
+.yt-trending-dl-badge:disabled {
+  opacity: 1;
+}
+
+.yt-trending-dl-badge:hover:not(:disabled) {
+  background: var(--accent);
+  transform: scale(1.1);
+}
+
+.yt-trending-info {
+  width: 100%;
+}
+
+.yt-trending-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.yt-trending-artist {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ==========================================
