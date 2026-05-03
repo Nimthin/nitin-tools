@@ -35,6 +35,12 @@ const allTools = [
     icon: '🔄',
     href: '/tools/file-converter',
   },
+  {
+    title: 'NitinMusic',
+    description: 'Your personal ad-free music player. Search any song, stream it instantly in full quality, and enjoy trending charts — all without a single ad.',
+    icon: '🎵',
+    href: '/tools/music-player',
+  },
 ];
 
 const subTools = [
