@@ -424,7 +424,7 @@ export default function MusicPlayer() {
       {currentTrack && !isMinimized && !isMaximized && (
         <div className="music-player-bar">
           {/* Left: Track Info */}
-          <div className="mp-now-info">
+          <div className="mp-now-info" onClick={() => setIsMaximized(true)} title="Expand to Full Screen" style={{ cursor: 'pointer' }}>
             <div className={`mp-now-art ${isPlaying ? 'is-playing' : ''}`}>
               <img src={currentTrack.artwork} alt={currentTrack.title} />
             </div>
@@ -496,10 +496,10 @@ export default function MusicPlayer() {
       {/* Minimized Floating Widget */}
       {currentTrack && isMinimized && (
         <div className="mp-mini-widget">
-          <div className={`mp-mini-art ${isPlaying ? 'is-playing' : ''}`}>
+          <div className={`mp-mini-art ${isPlaying ? 'is-playing' : ''}`} onClick={() => { setIsMinimized(false); setIsMaximized(true); }} style={{ cursor: 'pointer' }} title="Expand to Full Screen">
             <img src={currentTrack.artwork} alt={currentTrack.title} />
           </div>
-          <div className="mp-mini-info">
+          <div className="mp-mini-info" onClick={() => { setIsMinimized(false); setIsMaximized(true); }} style={{ cursor: 'pointer' }} title="Expand to Full Screen">
             <div className="mp-mini-title">{currentTrack.title}</div>
             <div className="mp-mini-artist">{currentTrack.artist}</div>
           </div>
