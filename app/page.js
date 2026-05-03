@@ -26,6 +26,12 @@ const tools = [
     icon: '🔄',
     href: '/tools/file-converter',
   },
+  {
+    title: 'Uncensored GPT',
+    description: 'A 100% uncensored chat interface powered by Dolphin 2.9 (Llama 3 70B). Zero filters, zero safety rules.',
+    icon: '🏴‍☠️',
+    href: '/tools/uncensored-gpt',
+  },
 ];
 
 export default function Home() {
