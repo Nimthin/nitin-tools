@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Trust system CAs for all connections -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- Allow your Vercel domain specifically -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">nitin-tools.vercel.app</domain>
+        <domain includeSubdomains="true">lrclib.net</domain>
+        <domain includeSubdomains="true">itunes.apple.com</domain>
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </domain-config>
+</network-security-config>

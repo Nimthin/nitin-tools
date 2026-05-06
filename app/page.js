@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import ToolCard from '@/components/ToolCard';
 import Chatbot from '@/components/Chatbot';
+import DownloadAppButton from '@/components/DownloadAppButton';
 
 const allTools = [
   {
@@ -140,6 +141,7 @@ export default function Home() {
       </section>
 
       <Chatbot />
+      <DownloadAppButton />
     </>
   );
 }
