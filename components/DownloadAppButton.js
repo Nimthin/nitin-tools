@@ -6,7 +6,7 @@ import { useState } from 'react';
  * Floating "Download App" button — links to the GitHub Release APK.
  * Update GITHUB_APK_URL when you publish a new version.
  */
-const GITHUB_APK_URL = 'https://github.com/Nimthin/nitin-tools/releases/latest/download/NitinTools-v1.0.0.apk';
+const GITHUB_APK_URL = 'https://github.com/Nimthin/nitin-tools/releases/latest/download/app-debug.apk';
 
 export default function DownloadAppButton() {
   const [isHovered, setIsHovered] = useState(false);
