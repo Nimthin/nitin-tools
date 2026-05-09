@@ -279,11 +279,48 @@ button {
 
 .hero {
   text-align: center;
-  padding: var(--space-xl) 0 var(--space-md);
+  padding: var(--space-3xl) 0 var(--space-2xl);
   position: relative;
   max-width: var(--max-width);
   margin: 0 auto;
   perspective: 1000px;
+}
+
+/* Frosted-glass search input — sits on top of the gradient */
+.hero-search-input {
+  width: 100%;
+  padding: 16px 24px 16px 48px;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-family: inherit;
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  outline: none;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all var(--transition-fast);
+}
+
+.hero-search-input::placeholder {
+  color: var(--text-secondary);
+}
+
+.hero-search-input:focus {
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+[data-theme="dark"] .hero-search-input {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .hero-search-input:focus {
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .hero-animated-title {
@@ -373,8 +410,10 @@ button {
 
 .tool-card {
   position: relative;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: var(--radius-lg);
   padding: var(--space-2xl) var(--space-xl) var(--space-xl);
   transition: all var(--transition-normal);
@@ -385,10 +424,21 @@ button {
 }
 
 .tool-card:hover {
-  background: var(--bg-card-hover);
-  border-color: var(--border-hover);
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.35);
   transform: scale(1.02);
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="dark"] .tool-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .tool-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .tool-card-icon {
@@ -743,5 +793,152 @@ button {
   to {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* ==========================================
+   PASTEL GRADIENT BACKGROUND
+   Dreamy animated backdrop with two counter-
+   rotating conic-gradient layers + heavy blur.
+   Adapts to light / dark theme automatically.
+   ========================================== */
+
+/* ---- Light-mode palette (pastels) ---- */
+:root,
+[data-theme="light"] {
+  --gradient-base: linear-gradient(135deg, #ffe8f3, #d9f3ff);
+  --gradient-conic-1: conic-gradient(
+    from 0deg,
+    #ff9aa2,
+    #ffb7b2,
+    #ffdac1,
+    #e2f0cb,
+    #a2e4ff,
+    #c9afff,
+    #ffb7b2,
+    #ff9aa2
+  );
+  --gradient-conic-2: conic-gradient(
+    from 0deg,
+    #c9afff,
+    #a2e4ff,
+    #e2f0cb,
+    #ffdac1,
+    #ffb7b2,
+    #ff9aa2,
+    #c9afff,
+    #a2e4ff
+  );
+  --gradient-layer-1-opacity: 0.8;
+  --gradient-layer-2-opacity: 0.55;
+  --gradient-vignette: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.15),
+    rgba(0, 0, 0, 0.06)
+  );
+}
+
+/* ---- Dark-mode palette (jewel tones) ---- */
+[data-theme="dark"] {
+  --gradient-base: linear-gradient(135deg, #0f0a1e, #0a1628);
+  --gradient-conic-1: conic-gradient(
+    from 0deg,
+    #6a3093,
+    #2948ff,
+    #00c9a7,
+    #f8e16c,
+    #ff6f91,
+    #845ec2,
+    #2948ff,
+    #6a3093
+  );
+  --gradient-conic-2: conic-gradient(
+    from 0deg,
+    #845ec2,
+    #ff6f91,
+    #f8e16c,
+    #00c9a7,
+    #2948ff,
+    #6a3093,
+    #845ec2,
+    #ff6f91
+  );
+  --gradient-layer-1-opacity: 0.45;
+  --gradient-layer-2-opacity: 0.3;
+  --gradient-vignette: radial-gradient(
+    circle,
+    rgba(0, 0, 0, 0),
+    rgba(0, 0, 0, 0.35)
+  );
+}
+
+/* ---- Wrapper ---- */
+.pastel-gradient-wrap {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: var(--gradient-base);
+  transition: background var(--transition-theme);
+}
+
+/* ---- Shared layer styles ---- */
+.pastel-gradient-layer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  pointer-events: none;
+  border-radius: 50%;
+  filter: blur(60px);
+  will-change: transform;
+}
+
+.pastel-layer-1 {
+  width: 200%;
+  height: 200%;
+  background: var(--gradient-conic-1);
+  opacity: var(--gradient-layer-1-opacity);
+  animation: gradientRotate 8s linear infinite;
+}
+
+.pastel-layer-2 {
+  width: 170%;
+  height: 170%;
+  background: var(--gradient-conic-2);
+  opacity: var(--gradient-layer-2-opacity);
+  animation: gradientRotateReverse 10s linear infinite;
+}
+
+/* ---- Vignette overlay ---- */
+.pastel-gradient-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--gradient-vignette);
+}
+
+/* ---- Content layer ---- */
+.pastel-gradient-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+}
+
+/* ---- Rotation keyframes ---- */
+@keyframes gradientRotate {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+@keyframes gradientRotateReverse {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(-360deg); }
+}
+
+/* ---- Reduce motion for a11y ---- */
+@media (prefers-reduced-motion: reduce) {
+  .pastel-layer-1,
+  .pastel-layer-2 {
+    animation: none;
   }
 }

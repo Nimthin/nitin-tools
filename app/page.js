@@ -4,6 +4,7 @@ import { useState } from 'react';
 import ToolCard from '@/components/ToolCard';
 import Chatbot from '@/components/Chatbot';
 import DownloadAppButton from '@/components/DownloadAppButton';
+import PastelGradientBg from '@/components/PastelGradientBg';
 
 const allTools = [
   {
@@ -41,6 +42,12 @@ const allTools = [
     description: 'Your personal ad-free music player. Search any song, stream it instantly in full quality, and enjoy trending charts — all without a single ad.',
     icon: '🎵',
     href: '/tools/music-player',
+  },
+  {
+    title: 'AI Chatbot',
+    description: 'Chat with an intelligent AI assistant. Get answers, brainstorm ideas, write code, and solve problems — all in a beautiful interface.',
+    icon: '🤖',
+    href: '/tools/chatbot',
   },
 ];
 
@@ -89,7 +96,7 @@ export default function Home() {
   );
 
   return (
-    <>
+    <PastelGradientBg style={{ minHeight: '100vh' }}>
       <section className="hero">
         <h1 className="hero-animated-title" style={{ lineHeight: '0.85' }}>
           <span className="hero-title-line">Your Personal</span>
@@ -103,19 +110,7 @@ export default function Home() {
             placeholder="Search for a tool..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '16px 24px 16px 48px',
-              borderRadius: '999px',
-              border: '1px solid var(--border-color)',
-              background: 'var(--bg-glass)',
-              color: 'var(--text-primary)',
-              fontSize: '1rem',
-              backdropFilter: 'blur(10px)',
-              outline: 'none',
-              boxShadow: 'var(--shadow-sm)',
-              transition: 'all var(--transition-fast)'
-            }}
+            className="hero-search-input"
           />
           <span style={{ 
             position: 'absolute', 
@@ -142,6 +137,6 @@ export default function Home() {
 
       <Chatbot />
       <DownloadAppButton />
-    </>
+    </PastelGradientBg>
   );
 }

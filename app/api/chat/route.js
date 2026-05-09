@@ -37,7 +37,7 @@ ${websiteInfo}
         model: 'llama-3.1-8b-instant',
         messages: [systemPrompt, ...messages],
         temperature: 0.5,
-        max_tokens: 150,
+        max_tokens: 1024,
       }),
     });
 
