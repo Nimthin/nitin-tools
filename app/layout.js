@@ -8,35 +8,27 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
-  const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+  const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || 'pk_test_dGVzdC1rZXktMTIuY2xlcmsuYWNjb3VudHMuZGV2JA';
 
-  const content = (
-    <html lang="en">
-      <body>
-        <DynamicBackground />
-        <main>{children}</main>
-      </body>
-    </html>
+  return (
+    <ClerkProvider
+      publishableKey={publishableKey}
+      appearance={{
+        elements: {
+          footer: { display: "none" },
+          footerAction: { display: "none" },
+        },
+        layout: {
+          showOptionalFields: false,
+        }
+      }}
+    >
+      <html lang="en">
+        <body>
+          <DynamicBackground />
+          <main>{children}</main>
+        </body>
+      </html>
+    </ClerkProvider>
   );
-
-  if (publishableKey) {
-    return (
-      <ClerkProvider
-        publishableKey={publishableKey}
-        appearance={{
-          elements: {
-            footer: { display: "none" },
-            footerAction: { display: "none" },
-          },
-          layout: {
-            showOptionalFields: false,
-          }
-        }}
-      >
-        {content}
-      </ClerkProvider>
-    );
-  }
-
-  return content;
 }
