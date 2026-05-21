@@ -94,10 +94,7 @@ export default function FileConverterPage() {
 
       <div className="tool-page-header">
         <h1>🔄 File converter</h1>
-        <p>
-          Turn your file into another format in one step — documents, spreadsheets, pictures, audio, or video.
-          Your file stays on your device; nothing is uploaded to a server.
-        </p>
+        <p>Convert images, audio, video, and documents instantly.</p>
       </div>
 
       <div

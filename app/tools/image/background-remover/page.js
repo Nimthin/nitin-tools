@@ -259,7 +259,7 @@ export default function BackgroundRemover() {
 
       <div className="tool-page-header">
         <h1>✨ Background Remover</h1>
-        <p>Instantly strip the background from any image. Processing happens entirely in your browser to ensure absolute privacy.</p>
+        <p>Remove backgrounds instantly using local AI.</p>
       </div>
 
       <div className="bg-remover-container">

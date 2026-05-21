@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import { useTheme } from './ThemeProvider';
+import { SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 import './Header.css';
 
 export default function Header() {
-  const { theme, toggleTheme } = useTheme();
+
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [suggestion, setSuggestion] = useState('');
@@ -67,11 +67,9 @@ export default function Header() {
     <>
       <header className="apple-header">
         <div className="apple-header-content">
-          <Link href="/" className="apple-logo" style={{ textDecoration: 'none', fontWeight: 600, letterSpacing: '-0.5px' }}>
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
-              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
-            </svg>
-            Toolkit
+          <Link href="/" className="apple-logo" style={{ textDecoration: 'none' }}>
+            <span style={{ fontSize: '1.2rem', imageRendering: 'pixelated' }}>🦕</span>
+            DinoTools
           </Link>
           <nav className="apple-nav">
             <Link href="/" className="apple-nav-link">Home</Link>
@@ -82,18 +80,19 @@ export default function Header() {
             <button className="apple-nav-link feedback-btn" onClick={() => setIsFeedbackOpen(true)}>
               Feedback
             </button>
-            <button 
-              className="theme-toggle" 
-              onClick={toggleTheme}
-              aria-label="Toggle theme"
-            >
-              <div 
-                className="theme-toggle-knob"
-                style={{ 
-                  transform: theme === 'dark' ? 'translateX(18px)' : 'translateX(0)' 
-                }}
-              ></div>
-            </button>
+
+            {/* Clerk Authentication UI */}
+            <div className="auth-wrapper" style={{ display: 'flex', alignItems: 'center', marginLeft: '12px' }}>
+              <SignedOut>
+                <SignInButton mode="modal">
+                  <button className="apple-nav-link auth-btn" style={{ fontWeight: 600, cursor: 'pointer' }}>Sign In</button>
+                </SignInButton>
+              </SignedOut>
+              <SignedIn>
+                <UserButton appearance={{ elements: { userButtonAvatarBox: { width: 32, height: 32 } } }} />
+              </SignedIn>
+            </div>
+
           </nav>
         </div>
       </header>

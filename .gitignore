@@ -26,3 +26,6 @@ npm-debug.log*
 
 # ytdl-core temp files
 *-player-script.js
+
+# reference sejda folder
+code/

@@ -5,10 +5,34 @@ import Link from 'next/link';
 import { PDFDocument } from 'pdf-lib';
 import './image-to-pdf.css';
 
+const FairyLights = () => {
+  const colors = ['#ff3b30', '#00bcd4', '#34c759', '#ffcc00', '#ff007f'];
+  const lights = [];
+  
+  for (let i = 0; i < 18; i++) {
+    const color = colors[i % colors.length];
+    const rotation = -15 + Math.random() * 30;
+    lights.push(
+      <div key={`top-${i}`} className="fairy-light" style={{ backgroundColor: color, top: '18px', left: `${4 + (i * 5.4)}%`, transform: `rotate(${rotation}deg)`, animationDelay: `${Math.random() * 2}s`, animationDuration: `${0.8 + Math.random()}s`, boxShadow: `0 0 12px ${color}, 0 0 4px ${color}` }} />
+    );
+  }
+  
+  for (let i = 0; i < 18; i++) {
+    const color = colors[(i + 2) % colors.length];
+    const rotation = -15 + Math.random() * 30;
+    lights.push(
+      <div key={`bot-${i}`} className="fairy-light" style={{ backgroundColor: color, bottom: '18px', left: `${4 + (i * 5.4)}%`, transform: `rotate(${rotation}deg) rotateX(180deg)`, animationDelay: `${Math.random() * 2}s`, animationDuration: `${0.8 + Math.random()}s`, boxShadow: `0 0 12px ${color}, 0 0 4px ${color}` }} />
+    );
+  }
+  
+  return <><div className="fairy-wire top" /><div className="fairy-wire bottom" />{lights}</>;
+};
+
 export default function ImageToPdf() {
   const [images, setImages] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
+  const [isComplete, setIsComplete] = useState(false);
   
   const fileInputRef = useRef(null);
   const [draggedIndex, setDraggedIndex] = useState(null);
@@ -131,8 +155,9 @@ export default function ImageToPdf() {
       
       setTimeout(() => URL.revokeObjectURL(url), 5000);
       
-      // Auto-clear the state after successful download
-      clearAll();
+      // Show success screen
+      setImages([]);
+      setIsComplete(true);
 
     } catch (err) {
       console.error(err);
@@ -150,7 +175,7 @@ export default function ImageToPdf() {
 
       <div className="tool-page-header">
         <h1>🖼️ Image to PDF</h1>
-        <p>Convert your images into a single PDF document. Drag and drop to rearrange order.</p>
+        <p>Turn multiple images into a single PDF instantly.</p>
       </div>
 
       <div className="img2pdf-container">
@@ -176,13 +201,24 @@ export default function ImageToPdf() {
           )}
         </div>
 
-        {images.length === 0 ? (
-          <div 
-            className="img2pdf-empty-state"
-            onClick={() => fileInputRef.current.click()}
-          >
-            <div className="empty-icon">📂</div>
-            <p>Click or drag images here to start</p>
+        {isComplete && (
+          <div className="result-container" style={{ position: 'relative', textAlign: 'center', padding: '60px 20px', background: '#2d1b4e', border: '4px solid #ff007f', boxShadow: '0 0 30px rgba(255, 0, 127, 0.4), inset 0 0 20px rgba(0,0,0,0.5)', marginTop: '20px' }}>
+            <FairyLights />
+            <div style={{ fontSize: '5rem', marginBottom: '20px', filter: 'drop-shadow(4px 4px 0px #000)' }}>🎉</div>
+            <h2 style={{ fontFamily: 'var(--font-pixel)', color: '#ffcc00', marginBottom: '20px', fontSize: '2rem', textShadow: '4px 4px 0px #000' }}>TASK DONE!</h2>
+            <p style={{ marginBottom: '40px', fontSize: '1.1rem', color: '#ffffff' }}>Your new PDF has been downloaded successfully.</p>
+            <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button className="btn btn-primary" onClick={() => { setIsComplete(false); clearAll(); }} style={{ padding: '12px 24px', fontSize: '1rem' }}>
+                Process New Images
+              </button>
+            </div>
+          </div>
+        )}
+
+        {images.length === 0 && !isComplete ? (
+          <div className="upload-zone" onClick={() => fileInputRef.current.click()}>
+            <div className="upload-zone-icon">🖼️</div>
+            <div className="upload-zone-text">Click or drag images here to start</div>
           </div>
         ) : (
           <>

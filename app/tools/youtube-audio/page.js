@@ -391,9 +391,7 @@ export default function YouTubeAudioDownloader() {
           </svg>
           YouTube Audio Downloader
         </h1>
-        <p>
-          Paste a YouTube link or search for a song to download the audio directly.
-        </p>
+        <p>Download high-quality audio from YouTube.</p>
       </div>
 
       {/* URL Input */}

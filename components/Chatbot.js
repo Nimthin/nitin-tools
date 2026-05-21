@@ -3,10 +3,60 @@
 import { useState, useRef, useEffect } from 'react';
 import './Chatbot.css';
 
+// Custom-coded Retro SVG Dinosaur
+const CustomDinoIcon = () => {
+  const pixels = [
+    "0000001111110",
+    "0000012222221",
+    "0000012222221",
+    "0000123122221",
+    "0000122222221",
+    "0000122222221",
+    "0000122211110",
+    "0000122210000",
+    "0011222221100",
+    "0121222222210",
+    "0122222221100",
+    "0012222221000",
+    "0001222210000"
+  ];
+  const frame1 = ["0000121210000", "0000110110000"];
+  const frame2 = ["0000011210000", "0000000110000"];
+  
+  const colors = { '1': '#000000', '2': 'var(--pixel-green, #4caf50)', '3': '#ffffff' };
+  
+  const renderGrid = (grid, yOffset = 0) => (
+    grid.map((row, y) => (
+      row.split('').map((char, x) => (
+        char !== '0' ? <rect key={`${x}-${y + yOffset}`} x={x} y={y + yOffset} width="1" height="1" fill={colors[char]} /> : null
+      ))
+    ))
+  );
+
+  return (
+    <div style={{ position: 'relative', width: '48px', height: '48px', filter: 'drop-shadow(2px 2px 0px rgba(0,0,0,0.5))' }}>
+      <style>{`
+        .dino-f1 { animation: dToggle 0.6s steps(1) infinite; }
+        .dino-f2 { opacity: 0; animation: dToggleAlt 0.6s steps(1) infinite; }
+        @keyframes dToggle { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        @keyframes dToggleAlt { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+      `}</style>
+      <svg viewBox="0 0 13 15" width="48" height="48" className="dino-f1" style={{ position: 'absolute', top: 0, left: 0 }}>
+        {renderGrid(pixels)}
+        {renderGrid(frame1, 13)}
+      </svg>
+      <svg viewBox="0 0 13 15" width="48" height="48" className="dino-f2" style={{ position: 'absolute', top: 0, left: 0 }}>
+        {renderGrid(pixels)}
+        {renderGrid(frame2, 13)}
+      </svg>
+    </div>
+  );
+};
+
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: 'Hi! I am the Toolkit Assistant. How can I help you today?' }
+    { role: 'assistant', content: 'Hey! 🦕 I\'m Dino, your toolkit assistant. What can I help you with?' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -65,12 +115,8 @@ export default function Chatbot() {
         </div>
         <div className="chatbot-header">
           <div className="chatbot-header-title">
-            <img 
-              src="https://i.pinimg.com/originals/2d/4f/08/2d4f086717206448db0e61fb91774ae1.gif" 
-              alt="AI"
-              style={{ width: '24px', height: '24px', borderRadius: '50%', objectFit: 'cover' }}
-            />
-            Toolkit Assistant
+            <span style={{ fontSize: '1.2rem' }}>🦕</span>
+            Dino Assistant
           </div>
           <button className="chatbot-close" onClick={toggleChat}>✕</button>
         </div>
@@ -111,11 +157,7 @@ export default function Chatbot() {
         onClick={toggleChat}
         aria-label="Open Chat"
       >
-        <img 
-          src="https://i.pinimg.com/originals/2d/4f/08/2d4f086717206448db0e61fb91774ae1.gif" 
-          alt="Chatbot Assistant"
-          style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
-        />
+        <CustomDinoIcon />
       </button>
     </div>
   );

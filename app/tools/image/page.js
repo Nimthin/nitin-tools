@@ -25,9 +25,7 @@ export default function ImageToolkitHub() {
 
       <div className="tool-page-header">
         <h1>🖼️ Image Toolkit</h1>
-        <p>
-          A collection of advanced image utilities. All processing happens entirely within your browser — no images are ever uploaded to a server.
-        </p>
+        <p>Private, in-browser AI image utilities.</p>
       </div>
 
       <section className="tools-section" style={{ padding: '2rem 0' }}>

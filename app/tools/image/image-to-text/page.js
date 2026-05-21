@@ -121,7 +121,7 @@ export default function ImageToText() {
 
       <div className="tool-page-header">
         <h1>📝 Image to Text (OCR)</h1>
-        <p>Extract text from screenshots, documents, or photos instantly. Processed completely offline in your browser for total privacy.</p>
+        <p>Extract text from screenshots and photos locally.</p>
       </div>
 
       <div className="ocr-container">

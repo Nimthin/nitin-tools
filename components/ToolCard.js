@@ -5,7 +5,7 @@ export default function ToolCard({ title, description, icon, href, index = 0 }) 
     <Link 
       href={href} 
       className="tool-card staggered-card-entry"
-      style={{ animationDelay: `${0.2 + (index * 0.15)}s` }}
+      style={{ animationDelay: `${0.1 + (index * 0.1)}s` }}
     >
       <div className="tool-card-icon">{icon}</div>
       <div className="tool-card-content">
@@ -13,7 +13,7 @@ export default function ToolCard({ title, description, icon, href, index = 0 }) 
         <p className="tool-card-description">{description}</p>
       </div>
       <div className="tool-card-arrow">
-        Open tool →
+        PLAY ▶
       </div>
     </Link>
   );

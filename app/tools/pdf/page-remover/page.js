@@ -5,6 +5,62 @@ import Link from 'next/link';
 import { loadPdf, removePages, downloadPdf, formatFileSize } from '@/tools-logic/pdfPageRemover';
 import './pdf-tool.css';
 
+// Component for rendering blinking fairy lights around a container
+const FairyLights = () => {
+  const colors = ['#ff3b30', '#00bcd4', '#34c759', '#ffcc00', '#ff007f'];
+  const lights = [];
+  
+  // Top edge lights
+  for (let i = 0; i < 18; i++) {
+    const color = colors[i % colors.length];
+    const rotation = -15 + Math.random() * 30; // Random tilt between -15 and 15 degrees
+    lights.push(
+      <div
+        key={`top-${i}`}
+        className="fairy-light"
+        style={{
+          backgroundColor: color,
+          top: '18px', // Hangs just below the wire (wire is at 15px)
+          left: `${4 + (i * 5.4)}%`,
+          transform: `rotate(${rotation}deg)`,
+          animationDelay: `${Math.random() * 2}s`,
+          animationDuration: `${0.8 + Math.random()}s`,
+          boxShadow: `0 0 12px ${color}, 0 0 4px ${color}`
+        }}
+      />
+    );
+  }
+  
+  // Bottom edge lights
+  for (let i = 0; i < 18; i++) {
+    const color = colors[(i + 2) % colors.length];
+    const rotation = -15 + Math.random() * 30;
+    lights.push(
+      <div
+        key={`bot-${i}`}
+        className="fairy-light"
+        style={{
+          backgroundColor: color,
+          bottom: '18px', // Hangs pointing up from the bottom wire (or we could flip it)
+          left: `${4 + (i * 5.4)}%`,
+          transform: `rotate(${rotation}deg) rotateX(180deg)`, // Flip upside down for bottom wire
+          animationDelay: `${Math.random() * 2}s`,
+          animationDuration: `${0.8 + Math.random()}s`,
+          boxShadow: `0 0 12px ${color}, 0 0 4px ${color}`
+        }}
+      />
+    );
+  }
+  
+  return (
+    <>
+      <div className="fairy-wire top" />
+      <div className="fairy-wire bottom" />
+      {lights}
+    </>
+  );
+};
+
 export default function PdfPageRemover() {
   const [pdfData, setPdfData] = useState(null);       // { pdfBytes, pageCount, fileName, fileSize }
   const [selectedPages, setSelectedPages] = useState(new Set());
@@ -13,6 +69,8 @@ export default function PdfPageRemover() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState(null);
+  const [isComplete, setIsComplete] = useState(false);
+  const [rangeInput, setRangeInput] = useState('');
   const fileInputRef = useRef(null);
   const canvasRefs = useRef({});
 
@@ -57,6 +115,7 @@ export default function PdfPageRemover() {
       const data = await loadPdf(file);
       setPdfData(data);
       await renderThumbnails(data.pdfBytes);
+      setIsComplete(false);
     } catch (err) {
       console.error(err);
       setError('Failed to load PDF. The file may be corrupted or password-protected.');
@@ -106,6 +165,48 @@ export default function PdfPageRemover() {
     setSelectedPages(new Set());
   };
 
+  // Parse page range input (e.g., "1, 3-5, 8")
+  const applyRange = () => {
+    if (!pdfData || !rangeInput.trim()) return;
+
+    const parts = rangeInput.split(',').map(s => s.trim()).filter(Boolean);
+    const newSelection = new Set(selectedPages);
+    let addedAny = false;
+
+    parts.forEach(part => {
+      if (part.includes('-')) {
+        const [startStr, endStr] = part.split('-');
+        const start = parseInt(startStr, 10);
+        const end = parseInt(endStr, 10);
+        if (!isNaN(start) && !isNaN(end)) {
+          const min = Math.min(start, end);
+          const max = Math.max(start, end);
+          for (let i = min; i <= max; i++) {
+            if (i >= 1 && i <= pdfData.pageCount) {
+              newSelection.add(i - 1); // Internal state is 0-indexed
+              addedAny = true;
+            }
+          }
+        }
+      } else {
+        const pageNum = parseInt(part, 10);
+        if (!isNaN(pageNum) && pageNum >= 1 && pageNum <= pdfData.pageCount) {
+          newSelection.add(pageNum - 1);
+          addedAny = true;
+        }
+      }
+    });
+
+    if (addedAny) {
+      setSelectedPages(newSelection);
+      setRangeInput(''); // Clear after success
+      setError(null);
+    } else {
+      setError("Invalid page range format. Use numbers and hyphens (e.g., 2, 4-10).");
+      setTimeout(() => setError(null), 4000);
+    }
+  };
+
   // Process and download
   const handleRemoveAndDownload = async () => {
     if (!pdfData || selectedPages.size === 0) return;
@@ -122,8 +223,7 @@ export default function PdfPageRemover() {
       const modifiedPdf = await removePages(pdfData.pdfBytes, selectedPages);
       await downloadPdf(modifiedPdf, pdfData.fileName);
       
-      // Auto-clear the state after successful download
-      handleReset();
+      setIsComplete(true);
     } catch (err) {
       console.error(err);
       setError('Failed to process the PDF. Please try again.');
@@ -132,12 +232,18 @@ export default function PdfPageRemover() {
     }
   };
 
+  const handleContinueEditing = () => {
+    setIsComplete(false);
+    setSelectedPages(new Set()); // Clear selection so they don't accidentally remove them again
+  };
+
   // Reset / upload new
   const handleReset = () => {
     setPdfData(null);
     setSelectedPages(new Set());
     setThumbnails([]);
     setError(null);
+    setIsComplete(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -148,11 +254,8 @@ export default function PdfPageRemover() {
       </Link>
 
       <div className="tool-page-header">
-        <h1>📄 PDF Page Remover</h1>
-        <p>
-          Upload a PDF, click the pages you want to remove, then download your cleaned file. 
-          Everything happens in your browser — your file is never uploaded anywhere.
-        </p>
+        <h1>✂️ PDF Page Remover</h1>
+        <p>Click pages to delete them. Runs 100% locally.</p>
       </div>
 
       {error && (
@@ -172,7 +275,7 @@ export default function PdfPageRemover() {
       />
 
       {/* Upload Zone — shown when no PDF is loaded */}
-      {!pdfData && !isLoading && (
+      {!pdfData && !isLoading && !isComplete && (
         <div
           className={`upload-zone ${dragOver ? 'drag-over' : ''}`}
           onClick={() => fileInputRef.current?.click()}
@@ -198,8 +301,31 @@ export default function PdfPageRemover() {
         </div>
       )}
 
+      {/* Success Screen */}
+      {isComplete && (
+        <div className="result-container" style={{ position: 'relative', textAlign: 'center', padding: '60px 20px', background: '#2d1b4e', border: '4px solid #ff007f', boxShadow: '0 0 30px rgba(255, 0, 127, 0.4), inset 0 0 20px rgba(0,0,0,0.5)', marginTop: '20px' }}>
+          
+          <FairyLights />
+          
+          <div style={{ fontSize: '5rem', marginBottom: '20px', filter: 'drop-shadow(4px 4px 0px #000)' }}>🎉</div>
+          <h2 style={{ fontFamily: 'var(--font-pixel)', color: '#ffcc00', marginBottom: '20px', fontSize: '2rem', textShadow: '4px 4px 0px #000' }}>
+            TASK DONE!
+          </h2>
+          <p style={{ marginBottom: '40px', fontSize: '1.1rem', color: '#ffffff' }}>Your cleaned PDF has been downloaded successfully.</p>
+          
+          <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button className="btn btn-ghost" onClick={handleContinueEditing} style={{ padding: '12px 24px', fontSize: '1rem' }}>
+              Continue Editing
+            </button>
+            <button className="btn btn-primary" onClick={handleReset} style={{ padding: '12px 24px', fontSize: '1rem' }}>
+              Process New PDF
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* PDF Loaded — show file info + page grid */}
-      {pdfData && !isLoading && (
+      {pdfData && !isLoading && !isComplete && (
         <>
           {/* File info bar */}
           <div className="file-info">
@@ -220,21 +346,30 @@ export default function PdfPageRemover() {
           </div>
 
           {/* Page grid header */}
-          <div className="page-grid-header">
-            <div>
-              <div className="page-grid-title">
-                Select pages to remove
+          <div className="page-grid-header" style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+              <div>
+                <div className="page-grid-title">Select pages to remove</div>
+                <div className="page-grid-hint">Click on pages to mark them for removal</div>
               </div>
-              <div className="page-grid-hint">
-                Click on pages to mark them for removal
+              <div className="select-buttons">
+                <button className="btn btn-ghost btn-sm" onClick={selectAll}>Select all</button>
+                <button className="btn btn-ghost btn-sm" onClick={deselectAll}>Deselect all</button>
               </div>
             </div>
-            <div className="select-buttons">
-              <button className="btn btn-ghost btn-sm" onClick={selectAll}>
-                Select all
-              </button>
-              <button className="btn btn-ghost btn-sm" onClick={deselectAll}>
-                Deselect all
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', background: 'rgba(0,0,0,0.2)', padding: '12px', border: '3px solid var(--pixel-border)' }}>
+              <span style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Custom Range:</span>
+              <input 
+                type="text" 
+                placeholder="e.g. 2, 4-10, 14" 
+                value={rangeInput}
+                onChange={(e) => setRangeInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') applyRange(); }}
+                style={{ flex: 1, minWidth: '150px', padding: '6px 12px' }}
+              />
+              <button className="btn btn-ghost btn-sm" onClick={applyRange} style={{ padding: '6px 16px' }}>
+                Apply
               </button>
             </div>
           </div>

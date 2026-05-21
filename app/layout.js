@@ -1,24 +1,31 @@
+import { ClerkProvider } from '@clerk/nextjs';
 import './globals.css';
-import Header from '@/components/Header';
-import ThemeProvider from '@/components/ThemeProvider';
+import DynamicBackground from '@/components/DynamicBackground';
 
 export const metadata = {
-  title: 'Nitin Tools — Personal Utility Toolkit',
+  title: 'DinoTools — Retro Utility Toolkit 🦕',
   description: 'A collection of free, fast, and private utility tools built for personal use. Process files, convert data, and automate small tasks — all in your browser.',
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body>
-        <ThemeProvider>
-          <Header />
+    <ClerkProvider
+      appearance={{
+        elements: {
+          footer: { display: "none" },
+          footerAction: { display: "none" },
+        },
+        layout: {
+          showOptionalFields: false,
+        }
+      }}
+    >
+      <html lang="en">
+        <body>
+          <DynamicBackground />
           <main>{children}</main>
-          <footer className="footer">
-            Built with ❤️ for you
-          </footer>
-        </ThemeProvider>
-      </body>
-    </html>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

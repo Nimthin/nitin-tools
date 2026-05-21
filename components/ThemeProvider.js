@@ -32,7 +32,11 @@ export default function ThemeProvider({ children }) {
   }, [theme, mounted]);
 
   const toggleTheme = () => {
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+    setTheme((prev) => {
+      if (prev === 'light') return 'dark';
+      if (prev === 'dark') return 'dreamy';
+      return 'light';
+    });
   };
 
   // Prevent flash of wrong theme, but still provide context
