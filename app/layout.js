@@ -8,7 +8,7 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
-  const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || 'pk_test_dGVzdC1rZXktMTIuY2xlcmsuYWNjb3VudHMuZGV2JA';
+  const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || 'pk_test_ZW5kbGVzcy1iaXNvbi02NS5jbGVyay5hY2NvdW50cy5kZXYk';
 
   return (
     <ClerkProvider
