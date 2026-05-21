@@ -13,6 +13,12 @@ const imageTools = [
     description: 'Upload an image and instantly extract all text from it using advanced optical character recognition.',
     icon: '📝',
     href: '/tools/image/image-to-text',
+  },
+  {
+    title: 'Compress & Resize',
+    description: 'Shrink, resize, and convert images to JPG, PNG, or WebP client-side.',
+    icon: '🗜️',
+    href: '/tools/image/optimize',
   }
 ];
 

@@ -14,6 +14,8 @@ const allTools = [
   { title: 'Image Toolkit',  description: 'Remove backgrounds and extract text with local AI.', icon: <PixelIcon type="image"   size={32} />, href: '/tools/image' },
   { title: 'PDF Toolkit',    description: 'Convert images to PDF and manage your pages securely.', icon: <PixelIcon type="pdf"    size={32} />, href: '/tools/pdf' },
   { title: 'YouTube to MP3', description: 'Download high-quality audio from any YouTube video.',   icon: <PixelIcon type="youtube" size={32} />, href: '/tools/youtube-audio' },
+  { title: 'Video to GIF',   description: 'Trim video clips and export as GIF client-side.',        icon: <PixelIcon type="video"   size={32} />, href: '/tools/Video/video-to-gif' },
+  { title: 'QR Generator',   description: 'Generate customizable QR codes client-side.',            icon: <PixelIcon type="qr"      size={32} />, href: '/tools/qr-generator' },
   { title: 'File converter', description: 'Convert files, documents, and media formats instantly.', icon: <PixelIcon type="convert" size={32} />, href: '/tools/file-converter' },
   { title: 'NitinMusic',     description: 'Ad-free music streaming and trending charts.',           icon: <PixelIcon type="music"   size={32} />, href: '/tools/music-player' },
   { title: 'AI Chatbot',     description: 'Chat with an intelligent AI assistant.',                 icon: <PixelIcon type="bot"     size={32} />, href: '/tools/chatbot' },
@@ -22,6 +24,7 @@ const allTools = [
 const subTools = [
   { title: 'Background Remover',  description: 'Instantly strip image backgrounds using local AI.', icon: <PixelIcon type="magic"    size={32} />, href: '/tools/image/background-remover' },
   { title: 'Image to Text (OCR)', description: 'Extract text from any image instantly.',            icon: <PixelIcon type="notes"    size={32} />, href: '/tools/image/image-to-text' },
+  { title: 'Compress & Resize',   description: 'Compress, resize, and convert images locally.',     icon: <PixelIcon type="magic"    size={32} />, href: '/tools/image/optimize' },
   { title: 'Image to PDF',        description: 'Convert and compile multiple images into a PDF.',   icon: <PixelIcon type="photos"   size={32} />, href: '/tools/pdf/image-to-pdf' },
   { title: 'PDF Page Remover',    description: 'Visually select and delete PDF pages.',             icon: <PixelIcon type="scissors" size={32} />, href: '/tools/pdf/page-remover' },
   { title: 'PDF Merger',          description: 'Combine multiple PDF files into one.',              icon: <PixelIcon type="link"     size={32} />, href: '/tools/pdf/pdf-merger' },

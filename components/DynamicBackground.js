@@ -11,6 +11,8 @@ export default function DynamicBackground() {
     bgColor = '#cddc39'; // Yellow-Green
   } else if (pathname === '/tools/image/image-to-text') {
     bgColor = '#ff5722'; // Deep Orange
+  } else if (pathname === '/tools/image/optimize') {
+    bgColor = '#ff9800'; // Orange
   } else if (pathname === '/tools/pdf/image-to-pdf') {
     bgColor = '#3f51b5'; // Indigo
   } else if (pathname === '/tools/pdf/page-remover') {
@@ -23,6 +25,10 @@ export default function DynamicBackground() {
     bgColor = '#00bcd4'; // Cyan
   } else if (pathname?.startsWith('/tools/youtube')) {
     bgColor = '#9c27b0'; // Purple
+  } else if (pathname?.startsWith('/tools/Video')) {
+    bgColor = '#e91e63'; // Pink
+  } else if (pathname?.startsWith('/tools/qr-generator')) {
+    bgColor = '#00bcd4'; // Cyan
   } else if (pathname?.startsWith('/tools/file-converter')) {
     bgColor = '#ff9800'; // Orange
   } else if (pathname?.startsWith('/tools/music-player')) {
