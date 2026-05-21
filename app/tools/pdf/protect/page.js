@@ -2,6 +2,7 @@
 import { useState, useRef } from 'react';
 import Link from 'next/link';
 import { PDFDocument } from 'pdf-lib';
+import { encryptPDF } from '@pdfsmaller/pdf-encrypt-lite';
 
 // FairyLights Component for the Success Screen
 const FairyLights = () => {
@@ -27,10 +28,18 @@ const FairyLights = () => {
   return <><div className="fairy-wire top" /><div className="fairy-wire bottom" />{lights}</>;
 };
 
-export default function UnlockPdf() {
+export default function ProtectUnlockPdf() {
+  const [activeTab, setActiveTab] = useState('protect'); // 'protect' | 'unlock'
   const [file, setFile] = useState(null);
-  const [password, setPassword] = useState('');
+  
+  // Protect state
+  const [protectPassword, setProtectPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  
+  // Unlock state
+  const [unlockPassword, setUnlockPassword] = useState('');
   const [needsPassword, setNeedsPassword] = useState(false);
+
   const [isProcessing, setIsProcessing] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [error, setError] = useState(null);
@@ -42,20 +51,23 @@ export default function UnlockPdf() {
       setFile(selected);
       setError(null);
       setNeedsPassword(false);
-      setPassword('');
+      setUnlockPassword('');
+      setProtectPassword('');
+      setConfirmPassword('');
       
-      // Let's quickly test if it's encrypted
-      try {
-        const arrayBuffer = await selected.arrayBuffer();
-        await PDFDocument.load(arrayBuffer);
-        // If it succeeds without a password, it's not encrypted!
-        setError("This PDF is already unlocked. No password protection was detected.");
-      } catch (err) {
-        if (err.message.includes('encrypted') || err.name === 'EncryptedPDFError') {
-          setNeedsPassword(true);
-          setError(null);
-        } else {
-          setError("Failed to read PDF. It might be corrupted.");
+      if (activeTab === 'unlock') {
+        // Test if it is encrypted
+        try {
+          const arrayBuffer = await selected.arrayBuffer();
+          await PDFDocument.load(arrayBuffer);
+          setError("This PDF is not password-protected. No unlock is needed.");
+        } catch (err) {
+          if (err.message.includes('encrypted') || err.name === 'EncryptedPDFError') {
+            setNeedsPassword(true);
+            setError(null);
+          } else {
+            setError("Failed to read PDF. It might be corrupted.");
+          }
         }
       }
     } else {
@@ -63,18 +75,55 @@ export default function UnlockPdf() {
     }
   };
 
+  const handleProtect = async () => {
+    if (!file || !protectPassword) return;
+    if (protectPassword !== confirmPassword) {
+      setError("Passwords do not match!");
+      return;
+    }
+
+    setIsProcessing(true);
+    setError(null);
+
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      // Use `@pdfsmaller/pdf-encrypt-lite` to encrypt PDF
+      const encryptedBytes = await encryptPDF(
+        new Uint8Array(arrayBuffer),
+        protectPassword,
+        protectPassword // use same owner password
+      );
+
+      const blob = new Blob([encryptedBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Protected_${file.name}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+      setIsComplete(true);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to password protect PDF: " + (err.message || 'unknown error'));
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const handleUnlock = async () => {
-    if (!file || !password) return;
+    if (!file || !unlockPassword) return;
     
     setIsProcessing(true);
     setError(null);
 
     try {
       const arrayBuffer = await file.arrayBuffer();
-      // Try to load with the provided password
-      const pdfDoc = await PDFDocument.load(arrayBuffer, { password });
+      const pdfDoc = await PDFDocument.load(arrayBuffer, { password: unlockPassword });
       
-      // Saving it will naturally strip the encryption because pdf-lib does not write encrypted PDFs
       const pdfBytes = await pdfDoc.save();
       const blob = new Blob([pdfBytes], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
@@ -87,7 +136,6 @@ export default function UnlockPdf() {
       document.body.removeChild(link);
       
       setTimeout(() => URL.revokeObjectURL(url), 5000);
-      
       setIsComplete(true);
     } catch (err) {
       console.error(err);
@@ -101,12 +149,19 @@ export default function UnlockPdf() {
     }
   };
 
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    resetTool();
+  };
+
   const resetTool = () => {
     setFile(null);
     setIsComplete(false);
     setError(null);
     setNeedsPassword(false);
-    setPassword('');
+    setUnlockPassword('');
+    setProtectPassword('');
+    setConfirmPassword('');
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -114,8 +169,26 @@ export default function UnlockPdf() {
     <div className="tool-page">
       <Link href="/tools/pdf" className="tool-page-back">← Back to PDF Toolkit</Link>
       <div className="tool-page-header">
-        <h1>🔓 Unlock PDF</h1>
-        <p>Remove password protection from your PDF files permanently.</p>
+        <h1>🔒 Protect & Unlock PDF</h1>
+        <p>Add password protection to secure your PDF, or strip passwords from encrypted files.</p>
+      </div>
+
+      {/* Tabs */}
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+        <button 
+          onClick={() => handleTabChange('protect')}
+          className={`btn ${activeTab === 'protect' ? 'btn-selected' : 'btn-ghost'}`}
+          style={{ padding: '12px 24px', fontFamily: 'var(--font-pixel)', fontSize: '0.85rem' }}
+        >
+          🔒 Protect PDF
+        </button>
+        <button 
+          onClick={() => handleTabChange('unlock')}
+          className={`btn ${activeTab === 'unlock' ? 'btn-selected' : 'btn-ghost'}`}
+          style={{ padding: '12px 24px', fontFamily: 'var(--font-pixel)', fontSize: '0.85rem' }}
+        >
+          🔓 Unlock PDF
+        </button>
       </div>
 
       {isComplete ? (
@@ -123,10 +196,12 @@ export default function UnlockPdf() {
           <FairyLights />
           <div style={{ fontSize: '5rem', marginBottom: '20px', filter: 'drop-shadow(4px 4px 0px #000)' }}>🎉</div>
           <h2 style={{ fontFamily: 'var(--font-pixel)', color: '#ffcc00', marginBottom: '20px', fontSize: '2rem', textShadow: '4px 4px 0px #000' }}>TASK DONE!</h2>
-          <p style={{ marginBottom: '40px', fontSize: '1.1rem', color: '#ffffff' }}>Your unlocked PDF has been downloaded successfully.</p>
+          <p style={{ marginBottom: '40px', fontSize: '1.1rem', color: '#ffffff' }}>
+            {activeTab === 'protect' ? 'Your protected PDF has been downloaded successfully.' : 'Your unlocked PDF has been downloaded successfully.'}
+          </p>
           <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <button className="btn btn-primary" onClick={resetTool} style={{ padding: '12px 24px', fontSize: '1rem' }}>
-              Unlock Another PDF
+              {activeTab === 'protect' ? 'Protect Another PDF' : 'Unlock Another PDF'}
             </button>
           </div>
         </div>
@@ -136,8 +211,10 @@ export default function UnlockPdf() {
           
           {!file ? (
             <div className="upload-zone" onClick={() => fileInputRef.current?.click()}>
-              <div className="upload-zone-icon">🔒</div>
-              <div className="upload-zone-text">Click or drag a protected PDF here</div>
+              <div className="upload-zone-icon">{activeTab === 'protect' ? '🔓' : '🔒'}</div>
+              <div className="upload-zone-text">
+                {activeTab === 'protect' ? 'Click or drag a PDF here to encrypt' : 'Click or drag a protected PDF here to decrypt'}
+              </div>
               <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="application/pdf" style={{ display: 'none' }} />
             </div>
           ) : (
@@ -146,26 +223,56 @@ export default function UnlockPdf() {
                 <span>📄</span> <strong>{file.name}</strong>
               </div>
               
-              {needsPassword && (
+              {activeTab === 'protect' && (
+                <div style={{ width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <label style={{ fontFamily: 'var(--font-pixel)', fontSize: '0.8rem', color: '#fff' }}>CHOOSE PASSWORD:</label>
+                    <input 
+                      type="password" 
+                      value={protectPassword}
+                      onChange={(e) => setProtectPassword(e.target.value)}
+                      placeholder="Secret Password..."
+                      style={{ padding: '12px', fontSize: '1rem', border: '3px solid var(--pixel-border)', background: '#fff', color: '#000' }}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <label style={{ fontFamily: 'var(--font-pixel)', fontSize: '0.8rem', color: '#fff' }}>CONFIRM PASSWORD:</label>
+                    <input 
+                      type="password" 
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Confirm Password..."
+                      style={{ padding: '12px', fontSize: '1rem', border: '3px solid var(--pixel-border)', background: '#fff', color: '#000' }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'unlock' && needsPassword && (
                 <div style={{ width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <label style={{ fontFamily: 'var(--font-pixel)', fontSize: '0.8rem', color: '#fff' }}>ENTER CURRENT PASSWORD:</label>
                   <input 
                     type="password" 
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    value={unlockPassword}
+                    onChange={(e) => setUnlockPassword(e.target.value)}
                     placeholder="Secret Password..."
                     style={{ padding: '12px', fontSize: '1rem', border: '3px solid var(--pixel-border)', background: '#fff', color: '#000' }}
                   />
                   <small style={{ color: 'var(--text-dim)', textAlign: 'center', marginTop: '10px' }}>
-                    Note: We don't save or upload your password. Unlocking happens entirely in your browser.
+                    Note: Unlocking happens entirely in your browser. Your password is never uploaded.
                   </small>
                 </div>
               )}
 
               <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
                 <button className="btn btn-ghost" onClick={resetTool} disabled={isProcessing}>Cancel</button>
-                {needsPassword && (
-                  <button className="btn btn-primary" onClick={handleUnlock} disabled={isProcessing || !password}>
+                {activeTab === 'protect' && (
+                  <button className="btn btn-primary" onClick={handleProtect} disabled={isProcessing || !protectPassword || !confirmPassword}>
+                    {isProcessing ? 'Protecting...' : 'Protect & Download'}
+                  </button>
+                )}
+                {activeTab === 'unlock' && needsPassword && (
+                  <button className="btn btn-primary" onClick={handleUnlock} disabled={isProcessing || !unlockPassword}>
                     {isProcessing ? 'Unlocking...' : 'Unlock & Download'}
                   </button>
                 )}

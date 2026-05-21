@@ -39,9 +39,9 @@ const pdfTools = [
     href: '/tools/pdf/watermark',
   },
   {
-    title: 'Unlock PDF',
-    description: 'Remove password protection from your PDFs permanently.',
-    icon: '🔓',
+    title: 'Protect & Unlock PDF',
+    description: 'Add password protection to secure your PDFs, or remove passwords from protected PDFs.',
+    icon: '🔒',
     href: '/tools/pdf/protect',
   },
   {

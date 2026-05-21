@@ -27,6 +27,8 @@ const subTools = [
   { title: 'PDF Merger',          description: 'Combine multiple PDF files into one.',              icon: <PixelIcon type="link"     size={32} />, href: '/tools/pdf/pdf-merger' },
 ];
 
+
+
 /* ==========================================================================
    Component
    ========================================================================== */
@@ -39,8 +41,6 @@ export default function Home() {
   const wordRefs = useRef([]);
   const subtitleRef = useRef(null);
   const searchWrapRef = useRef(null);
-  const stickerRefs = useRef([]);
-  const marqueeRef = useRef(null);
 
   const itemsToSearch = searchQuery.trim() === '' ? allTools : [...allTools, ...subTools];
   const filteredTools = itemsToSearch.filter(
@@ -58,18 +58,15 @@ export default function Home() {
     if (reduceMotion) return;
 
     let rafId = null;
-    let marqueeOffset = 0;
     let lastScroll = window.scrollY;
 
     const apply = () => {
       const y = window.scrollY;
-      const vh = window.innerHeight || 1;
-      const p = Math.max(0, Math.min(1, y / (vh * 0.85))); // 0 → 1 across ~85vh
+      const p = Math.max(0, Math.min(1, y / 250)); // 0 → 1 across 250px of scroll
       setScrollProgress(p);
 
-      // Words: "Your" flies left, "Personal" lifts + spreads, "Toolkit" flies right
+      // Words: "Your Personal" flies left, "Toolkit" flies right
       const w0 = wordRefs.current[0];
-      const w1 = wordRefs.current[1];
       const w2 = wordRefs.current[2];
 
       if (w0) {
@@ -81,14 +78,6 @@ export default function Home() {
           `translate(${tx}vw, ${ty}vh) rotate(${rot}deg) scale(${scale})`;
         w0.style.opacity = `${Math.max(0, 1 - p * 1.4)}`;
       }
-      if (w1) {
-        const ty = -p * 18;
-        const scale = 1 - p * 0.55;
-        const spread = p * 24;    // px between letters
-        w1.style.transform = `translateY(${ty}vh) scale(${scale})`;
-        w1.style.letterSpacing = `${spread}px`;
-        w1.style.opacity = `${Math.max(0.15, 1 - p * 1.1)}`;
-      }
       if (w2) {
         const tx = p * 55;
         const ty = -p * 12;
@@ -99,33 +88,15 @@ export default function Home() {
         w2.style.opacity = `${Math.max(0, 1 - p * 1.4)}`;
       }
 
-      // Subtitle + search ride upward and fade
-      if (subtitleRef.current) {
-        subtitleRef.current.style.transform = `translateY(${-p * 25}px)`;
-        subtitleRef.current.style.opacity = `${Math.max(0, 1 - p * 1.6)}`;
-      }
+
       if (searchWrapRef.current) {
         searchWrapRef.current.style.transform = `translateY(${-p * 40}px)`;
         searchWrapRef.current.style.opacity = `${Math.max(0, 1 - p * 1.8)}`;
       }
 
-      // Sticker parallax — varied speeds give depth
-      stickerRefs.current.forEach((el, i) => {
-        if (!el) return;
-        const speed = 0.15 + (i % 4) * 0.18;
-        const rot = (i % 2 === 0 ? 1 : -1) * y * 0.05;
-        const scale = 1 + p * 0.6;
-        el.style.transform =
-          `translateY(${-y * speed}px) rotate(${rot}deg) scale(${scale})`;
-        el.style.opacity = `${Math.max(0.05, 0.28 - p * 0.2)}`;
-      });
 
-      // Marquee: scroll velocity nudges the strip horizontally
-      if (marqueeRef.current) {
-        const delta = y - lastScroll;
-        marqueeOffset -= delta * 0.6;
-        marqueeRef.current.style.setProperty('--marquee-offset', `${marqueeOffset}px`);
-      }
+
+
 
       lastScroll = y;
       rafId = null;
@@ -191,18 +162,7 @@ export default function Home() {
   /* ====================================================================== */
   return (
     <div className="home-bg">
-      {/* Floating pixel stickers — true parallax now */}
-      <div className="pixel-stickers" aria-hidden="true">
-        {['⭐', '🔧', '💎', '🎮', '⚡', '🌟', '🕹️', '👾'].map((s, i) => (
-          <span
-            key={i}
-            ref={(el) => (stickerRefs.current[i] = el)}
-            className={`sticker sticker-${i + 1}`}
-          >
-            {s}
-          </span>
-        ))}
-      </div>
+
 
       {/* Hero */}
       <section
@@ -213,31 +173,19 @@ export default function Home() {
         <h1 className="hero-animated-title" style={{ lineHeight: 1.2, margin: 0 }}>
           <span
             ref={(el) => (wordRefs.current[0] = el)}
-            className="hero-word hero-word-1"
+            className="hero-word hero-title-line"
           >
-            Your
-          </span>{' '}
-          <span
-            ref={(el) => (wordRefs.current[1] = el)}
-            className="hero-word hero-word-2 hero-gradient-text"
-          >
-            Personal
-          </span>{' '}
+            Your Personal
+          </span>
           <span
             ref={(el) => (wordRefs.current[2] = el)}
-            className="hero-word hero-word-3"
+            className="hero-word hero-gradient-text"
           >
             Toolkit
           </span>
         </h1>
 
-        <div ref={subtitleRef} className="hero-subtitle">
-          <span className="trust-pill">
-            <span className="pulse-dot" /> 100% IN-BROWSER
-          </span>
-          <span className="trust-pill">11 TOOLS</span>
-          <span className="trust-pill">ZERO ADS</span>
-        </div>
+
 
         <div ref={searchWrapRef} className="hero-search-wrap">
           <input
@@ -252,27 +200,9 @@ export default function Home() {
           <kbd className="hero-search-kbd">/</kbd>
         </div>
 
-        <div className="scroll-cue" aria-hidden="true">
-          <div className="scroll-cue-arrow">▼</div>
-          <div className="scroll-cue-label">SCROLL TO EXPLODE</div>
-        </div>
       </section>
 
-      {/* Marquee strip */}
-      <div className="marquee-strip" ref={marqueeRef} aria-hidden="true">
-        <div className="marquee-track">
-          {Array.from({ length: 2 }).map((_, n) => (
-            <div className="marquee-group" key={n}>
-              <span>★ IN-BROWSER POWER ★</span>
-              <span>★ NO UPLOADS ★</span>
-              <span>★ FREE FOREVER ★</span>
-              <span>★ OPEN SOURCE ★</span>
-              <span>★ PIXEL POWERED ★</span>
-              <span>★ MADE BY NITIN ★</span>
-            </div>
-          ))}
-        </div>
-      </div>
+
 
       {/* Tools grid */}
       <section className="tools-section">
@@ -328,24 +258,24 @@ export default function Home() {
       /* ================================================================== */}
       <style jsx>{`
         .hero-scroll {
-          min-height: 100vh;
           display: flex;
           flex-direction: column;
-          justify-content: center;
+          justify-content: flex-start;
           align-items: center;
           gap: 24px;
           position: relative;
-          padding: 80px 20px 40px;
+          padding: 8vh 20px 20px;
           overflow: visible;
         }
 
         :global(.hero-animated-title) {
           display: flex !important;
-          flex-direction: row !important;
-          flex-wrap: wrap;
-          justify-content: center;
-          gap: 14px;
+          flex-direction: column !important;
+          align-items: center;
+          gap: 12px;
           will-change: transform;
+          font-size: clamp(2rem, 5.5vw, 4.5rem) !important;
+          line-height: 1.15 !important;
         }
 
         :global(.hero-word) {
@@ -359,8 +289,8 @@ export default function Home() {
             6px 6px 0px rgba(0, 0, 0, 0.5);
         }
 
-        :global(.hero-word-2.hero-gradient-text) {
-          color: var(--pixel-yellow);
+        :global(.hero-gradient-text) {
+          color: var(--pixel-yellow) !important;
           animation: pixelGlow 2s ease-in-out infinite alternate;
         }
 
@@ -373,27 +303,7 @@ export default function Home() {
           font-family: inherit;
         }
 
-        :global(.trust-pill) {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          font-family: var(--font-pixel);
-          font-size: 0.65rem;
-          letter-spacing: 1px;
-          padding: 8px 14px;
-          background: rgba(0, 0, 0, 0.55);
-          color: var(--pixel-cyan);
-          border: 2px solid var(--pixel-cyan);
-          box-shadow: 3px 3px 0 #000;
-        }
-        :global(.trust-pill:nth-child(2)) {
-          color: var(--pixel-yellow);
-          border-color: var(--pixel-yellow);
-        }
-        :global(.trust-pill:nth-child(3)) {
-          color: var(--pixel-green);
-          border-color: var(--pixel-green);
-        }
+
 
         :global(.pulse-dot) {
           width: 8px;
@@ -441,93 +351,11 @@ export default function Home() {
           pointer-events: none;
         }
 
-        .scroll-cue {
-          position: absolute;
-          bottom: 22px;
-          left: 50%;
-          transform: translateX(-50%);
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 6px;
-          opacity: calc(1 - var(--p, 0) * 2);
-          pointer-events: none;
-        }
-        .scroll-cue-arrow {
-          font-size: 1.2rem;
-          color: var(--pixel-yellow);
-          animation: scrollBounce 1.6s ease-in-out infinite;
-          text-shadow: 2px 2px 0 #000;
-        }
-        .scroll-cue-label {
-          font-family: var(--font-pixel);
-          font-size: 0.6rem;
-          letter-spacing: 1px;
-          color: #fff;
-          text-shadow: 2px 2px 0 #000;
-        }
-        @keyframes scrollBounce {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(8px); }
-        }
 
-        /* ---------- Marquee strip ---------- */
-        .marquee-strip {
-          position: relative;
-          overflow: hidden;
-          padding: 14px 0;
-          background: var(--pixel-yellow);
-          border-top: 4px solid #000;
-          border-bottom: 4px solid #000;
-          z-index: 2;
-        }
-        .marquee-track {
-          display: flex;
-          width: max-content;
-          will-change: transform;
-          animation: marqueeBase 25s linear infinite;
-          transform: translateX(var(--marquee-offset, 0px));
-        }
-        .marquee-group {
-          display: flex;
-          gap: 50px;
-          padding-right: 50px;
-          font-family: var(--font-pixel);
-          font-size: 0.85rem;
-          color: #000;
-          letter-spacing: 2px;
-          white-space: nowrap;
-        }
-        .marquee-group span {
-          display: inline-block;
-        }
-        @keyframes marqueeBase {
-          from { transform: translateX(var(--marquee-offset, 0px)); }
-          to   { transform: translateX(calc(-50% + var(--marquee-offset, 0px))); }
-        }
 
-        /* ---------- Pixel stickers ---------- */
-        :global(.pixel-stickers) {
-          position: fixed;
-          inset: 0;
-          pointer-events: none;
-          z-index: 0;
-          overflow: hidden;
-        }
-        :global(.sticker) {
-          position: absolute;
-          font-size: 1.8rem;
-          opacity: 0.25;
-          will-change: transform, opacity;
-        }
-        :global(.sticker-1) { top: 6%;  left: 4%;  font-size: 2.2rem; }
-        :global(.sticker-2) { top: 12%; right: 7%; font-size: 1.6rem; }
-        :global(.sticker-3) { top: 38%; left: 3%;  font-size: 2.0rem; }
-        :global(.sticker-4) { top: 55%; right: 5%; font-size: 2.4rem; }
-        :global(.sticker-5) { top: 75%; left: 8%;  font-size: 1.8rem; }
-        :global(.sticker-6) { top: 28%; right: 4%; font-size: 1.6rem; }
-        :global(.sticker-7) { top: 65%; left: 50%; font-size: 1.5rem; }
-        :global(.sticker-8) { top: 18%; left: 40%; font-size: 1.4rem; }
+
+
+
 
         /* ---------- Tool card reveal ---------- */
         :global(.tools-grid .tool-card) {
