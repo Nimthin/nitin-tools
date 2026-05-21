@@ -55,12 +55,21 @@ const CustomDinoIcon = () => {
 
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
+  const [showTip, setShowTip] = useState(false);
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: 'Hey! 🦕 I\'m Dino, your toolkit assistant. What can I help you with?' }
+    { role: 'assistant', content: "Hey! 🦕 I'm Dino, your retro system assistant. Type 'help' or ask me about any tool on this site!" }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
+
+  // Show helpful hint balloon shortly after loading if closed
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowTip(true);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -72,13 +81,17 @@ export default function Chatbot() {
     }
   }, [messages, isOpen]);
 
-  const toggleChat = () => setIsOpen(!isOpen);
+  const toggleChat = () => {
+    setIsOpen(!isOpen);
+    setShowTip(false);
+  };
 
   const sendMessage = async (e) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
-    const userMessage = { role: 'user', content: input.trim() };
+    const userVal = input.trim();
+    const userMessage = { role: 'user', content: userVal };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInput('');
@@ -96,10 +109,10 @@ export default function Chatbot() {
       if (response.ok) {
         setMessages((prev) => [...prev, { role: 'assistant', content: data.message }]);
       } else {
-        setMessages((prev) => [...prev, { role: 'assistant', content: 'Oops! Something went wrong. Please try again.' }]);
+        setMessages((prev) => [...prev, { role: 'assistant', content: 'SYSTEM ERROR: Response failed. Try again.' }]);
       }
     } catch (error) {
-      setMessages((prev) => [...prev, { role: 'assistant', content: 'Network error. Please try again later.' }]);
+      setMessages((prev) => [...prev, { role: 'assistant', content: 'CONNECTION ERROR: System offline.' }]);
     } finally {
       setIsLoading(false);
     }
@@ -107,48 +120,82 @@ export default function Chatbot() {
 
   return (
     <div className="chatbot-wrapper">
+      {/* Floating Tip Bubble above FAB */}
+      {showTip && !isOpen && (
+        <div className="chatbot-tip-bubble" onClick={toggleChat}>
+          <span>Need help? Ask Dino!</span>
+          <div className="tip-arrow" />
+        </div>
+      )}
+
       {/* Chat Window */}
       <div className={`chatbot-window ${isOpen ? 'open' : ''}`}>
         <div className="chatbot-bg">
           <div className="chatbot-bg-gradient"></div>
           <div className="chatbot-bg-glass"></div>
         </div>
+        
+        {/* Retro Title Bar */}
         <div className="chatbot-header">
           <div className="chatbot-header-title">
-            <span style={{ fontSize: '1.2rem' }}>🦕</span>
-            Dino Assistant
+            <span className="status-led blinking" />
+            <span style={{ fontFamily: 'var(--font-pixel)', fontSize: '0.6rem' }}>🦕 DINO_OS.EXE</span>
           </div>
-          <button className="chatbot-close" onClick={toggleChat}>✕</button>
+          <div style={{ display: 'flex', gap: '4px' }}>
+            <button className="window-control-btn" onClick={toggleChat} title="Minimize">_</button>
+            <button className="window-control-btn close" onClick={toggleChat} title="Close">✕</button>
+          </div>
         </div>
 
+        {/* CRT Scanline overlay effect */}
+        <div className="crt-overlay" />
+
+        {/* Messages */}
         <div className="chatbot-messages">
           {messages.map((msg, idx) => (
             <div key={idx} className={`chatbot-message ${msg.role}`}>
-              <div className="message-bubble">{msg.content}</div>
+              <div className="message-sender">
+                {msg.role === 'user' ? 'YOU >' : 'DINO >'}
+              </div>
+              <div className="message-bubble">
+                {msg.content}
+              </div>
             </div>
           ))}
           {isLoading && (
             <div className="chatbot-message assistant">
+              <div className="message-sender">DINO &gt;</div>
               <div className="message-bubble loading">
-                <span className="dot"></span><span className="dot"></span><span className="dot"></span>
+                <span className="dot"></span>
+                <span className="dot"></span>
+                <span className="dot"></span>
               </div>
             </div>
           )}
           <div ref={messagesEndRef} />
         </div>
 
+        {/* Console Input Bar */}
         <form className="chatbot-input-area" onSubmit={sendMessage}>
+          <span className="input-prompt">&gt;</span>
           <input
             type="text"
-            placeholder="Ask about a tool..."
+            placeholder="Type a message or 'help'..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
             disabled={isLoading}
+            autoComplete="off"
           />
-          <button type="submit" disabled={!input.trim() || isLoading}>
-            ↑
+          <button type="submit" disabled={!input.trim() || isLoading} aria-label="Send">
+            EXE
           </button>
         </form>
+
+        {/* Retro DOS-like Status Bar */}
+        <div className="chatbot-status-bar">
+          <span>DINO-DOS V1.0</span>
+          <span>RAM: 640KB OK</span>
+        </div>
       </div>
 
       {/* Floating Action Button */}

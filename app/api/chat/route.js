@@ -3,7 +3,7 @@ import { websiteInfo } from '@/lib/websiteInfo';
 
 export async function POST(request) {
   try {
-    const { messages, selectedModel = 'llama' } = await request.json();
+    const { messages, selectedModel = 'llama-3.1-8b-instant' } = await request.json();
 
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json({ error: 'Invalid messages format' }, { status: 400 });
