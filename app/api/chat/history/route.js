@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { auth } from '@clerk/nextjs/server';
+import dns from 'dns';
+
+dns.setDefaultResultOrder('ipv4first');
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -25,7 +28,10 @@ export async function GET(req) {
       .eq('user_id', userId)
       .single();
       
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) {
+      console.error("Supabase GET single chat error:", error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
     return NextResponse.json({ chat: data });
   }
 
@@ -36,7 +42,10 @@ export async function GET(req) {
     .eq('user_id', userId)
     .order('updated_at', { ascending: false });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("Supabase GET all chats error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
   return NextResponse.json({ chats: data });
 }
 
@@ -54,7 +63,10 @@ export async function POST(req) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("Supabase POST chat error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
   return NextResponse.json({ chat: data });
 }
 
@@ -74,7 +86,10 @@ export async function PUT(req) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("Supabase PUT chat error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
   return NextResponse.json({ chat: data });
 }
 

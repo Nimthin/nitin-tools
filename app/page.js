@@ -5,6 +5,7 @@ import ToolCard from '@/components/ToolCard';
 import Chatbot from '@/components/Chatbot';
 import DarkModeToggle from '@/components/DarkModeToggle';
 import PixelIcon from '@/components/PixelIcon';
+import { useUser, SignInButton, SignUpButton, SignOutButton } from '@clerk/nextjs';
 
 /* ==========================================================================
    Tool data (unchanged)
@@ -37,6 +38,8 @@ const subTools = [
    ========================================================================== */
 
 export default function Home() {
+  const { isSignedIn, user, isLoaded } = useUser();
+  const [isAuthSidebarOpen, setIsAuthSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [scrollProgress, setScrollProgress] = useState(0); // 0-1 of hero
 
@@ -255,6 +258,84 @@ export default function Home() {
 
       <Chatbot />
       <DarkModeToggle />
+
+      {/* Floating Auth Trigger Button */}
+      {isLoaded && (
+        <button 
+          className="auth-sidebar-trigger" 
+          onClick={() => setIsAuthSidebarOpen(true)}
+          title="Account Settings"
+          aria-label="Account Settings"
+        >
+          {isSignedIn && user ? (
+            <img src={user.imageUrl} alt="Profile" className="trigger-avatar-full" />
+          ) : (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          )}
+        </button>
+      )}
+
+      {/* Sidebar Drawer Overlay */}
+      <div 
+        className={`auth-sidebar-overlay ${isAuthSidebarOpen ? 'open' : ''}`}
+        onClick={() => setIsAuthSidebarOpen(false)}
+      />
+
+      {/* Retro Auth Sidebar Drawer */}
+      <div className={`auth-sidebar-drawer ${isAuthSidebarOpen ? 'open' : ''}`}>
+        <div className="auth-sidebar-header">
+          <h2>🦕 Account Settings</h2>
+          <button className="auth-sidebar-close" onClick={() => setIsAuthSidebarOpen(false)}>✕</button>
+        </div>
+        
+        <div className="auth-sidebar-body">
+          {!isSignedIn ? (
+            <div className="auth-logged-out">
+              <p className="auth-welcome-text">Sign in to sync your chats and save preferences across devices!</p>
+              
+              <div className="auth-actions">
+                <SignInButton mode="modal">
+                  <button className="retro-btn auth-signin-btn" onClick={() => setIsAuthSidebarOpen(false)}>
+                    🔑 Sign In
+                  </button>
+                </SignInButton>
+                
+                <SignUpButton mode="modal">
+                  <button className="retro-btn auth-signup-btn" onClick={() => setIsAuthSidebarOpen(false)}>
+                    📝 Sign Up
+                  </button>
+                </SignUpButton>
+              </div>
+            </div>
+          ) : (
+            <div className="auth-logged-in">
+              <div>
+                <div className="user-profile-card">
+                  <img src={user.imageUrl} alt="Avatar" className="user-profile-avatar" />
+                  <div className="user-profile-info">
+                    <div className="user-profile-name">{user.fullName || user.username || 'User'}</div>
+                    <div className="user-profile-email">{user.primaryEmailAddress?.emailAddress}</div>
+                  </div>
+                </div>
+                <p className="auth-welcome-text" style={{ fontSize: '0.8rem', color: '#666666' }}>
+                  You are signed in! Your progress is automatically saved to your account.
+                </p>
+              </div>
+              
+              <div className="auth-actions">
+                <SignOutButton>
+                  <button className="retro-btn auth-logout-btn" onClick={() => setIsAuthSidebarOpen(false)}>
+                    🚪 Log Out
+                  </button>
+                </SignOutButton>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* ================================================================== */
       /*  Page-scoped styles (scroll-driven hero + marquee + card reveal)    */

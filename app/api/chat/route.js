@@ -3,21 +3,33 @@ import { websiteInfo } from '@/lib/websiteInfo';
 
 export async function POST(request) {
   try {
-    const { messages, selectedModel = 'llama-3.1-8b-instant' } = await request.json();
+    let { messages, selectedModel = 'llama-3.1-8b-instant', isHomepage = false } = await request.json();
 
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json({ error: 'Invalid messages format' }, { status: 400 });
     }
 
-    const systemPromptText = `You are a highly capable, friendly AI assistant integrated into "Nitin's Toolkit". 
+    // Force Llama model for the homepage assistant
+    if (isHomepage) {
+      selectedModel = 'llama-3.1-8b-instant';
+    }
 
-You are free to answer ANY question the user asks, whether it is about programming, general knowledge, math, science, or casual conversation. You do not need to restrict yourself. Be as helpful as possible.
+    let systemPromptText;
+    if (isHomepage) {
+      systemPromptText = `You are the official website assistant for "Nitin's Toolkit". 
 
-Below is the COMPLETE, real-time knowledge base of everything this website does, its philosophy, and the tools it offers. Use this information if the user asks any questions about the website, what it can do, or how it works:
+Your ONLY purpose is to answer questions related to this website, its philosophy, its tools, its features, and how to use it.
+CRITICAL CONSTRAINT 1: You must refuse to answer any questions that are NOT about this website, its tools, or its contents. If the user asks general questions (such as general programming help, math, writing, history, translations, recipes, or general knowledge), you must politely decline and state that you are only programmed to help guide them on using the tools on this website.
+CRITICAL CONSTRAINT 2: Keep your answers extremely short, concise, and direct (maximum 2-3 sentences). Do not write long paragraphs or verbose explanations.
+
+Below is the COMPLETE, real-time knowledge base of everything this website does, its philosophy, and the tools it offers. Use this information to answer user questions:
 
 --- WEBSITE KNOWLEDGE BASE ---
 ${websiteInfo}
 ------------------------------`;
+    } else {
+      systemPromptText = `You are a highly capable, friendly, and helpful AI assistant. Answer the user's questions to the best of your ability.`;
+    }
 
     if (selectedModel.startsWith('gemini')) {
       // ---------------------------------
@@ -31,7 +43,7 @@ ${websiteInfo}
       // Map messages to Gemini format (roles: 'user', 'model')
       const geminiContents = messages.map(msg => {
         const parts = [{ text: msg.content || "Analyze the attached image." }];
-        
+
         if (msg.file) {
           const rawBase64 = msg.file.base64.split(',')[1];
           parts.push({
@@ -84,7 +96,7 @@ ${websiteInfo}
       }
 
       const systemPrompt = { role: 'system', content: systemPromptText };
-      
+
       // Ensure Groq doesn't try to process PDFs since its vision models only support images
       const hasPdf = messages.some(msg => msg.file && msg.file.mimeType === 'application/pdf');
       if (hasPdf) {

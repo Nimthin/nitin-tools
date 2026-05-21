@@ -34,10 +34,10 @@ export default function DynamicBackground() {
   } else if (pathname?.startsWith('/tools/music-player')) {
     bgColor = '#2196f3'; // Blue
   } else if (pathname?.startsWith('/tools/chatbot')) {
-    bgColor = '#e91e63'; // Pink
+    bgColor = '#f4efe2'; // Retro beige/putty
   }
 
-  const isHome = pathname === '/';
+  const hasGrid = pathname === '/';
 
   return (
     <>
@@ -47,7 +47,7 @@ export default function DynamicBackground() {
           position: fixed;
           inset: 0;
           background-color: var(--pixel-page-bg, var(--dynamic-bg-color));
-          background-image: ${isHome ? 'conic-gradient(rgba(0, 0, 0, 0.04) 90deg, transparent 90deg 180deg, rgba(0, 0, 0, 0.04) 180deg 270deg, transparent 270deg)' : 'none'};
+          background-image: ${hasGrid ? 'conic-gradient(rgba(0, 0, 0, 0.04) 90deg, transparent 90deg 180deg, rgba(0, 0, 0, 0.04) 180deg 270deg, transparent 270deg)' : 'none'};
           background-size: 140px 140px;
           pointer-events: none;
           z-index: -1;

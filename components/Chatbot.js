@@ -101,7 +101,10 @@ export default function Chatbot() {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: newMessages }),
+        body: JSON.stringify({ 
+          messages: newMessages,
+          isHomepage: true
+        }),
       });
 
       const data = await response.json();
@@ -120,43 +123,22 @@ export default function Chatbot() {
 
   return (
     <div className="chatbot-wrapper">
-      {/* Floating Tip Bubble above FAB */}
-      {showTip && !isOpen && (
-        <div className="chatbot-tip-bubble" onClick={toggleChat}>
-          <span>Need help? Ask Dino!</span>
-          <div className="tip-arrow" />
-        </div>
-      )}
 
       {/* Chat Window */}
       <div className={`chatbot-window ${isOpen ? 'open' : ''}`}>
-        <div className="chatbot-bg">
-          <div className="chatbot-bg-gradient"></div>
-          <div className="chatbot-bg-glass"></div>
-        </div>
-        
-        {/* Retro Title Bar */}
+        {/* Title Bar */}
         <div className="chatbot-header">
           <div className="chatbot-header-title">
-            <span className="status-led blinking" />
-            <span style={{ fontFamily: 'var(--font-pixel)', fontSize: '0.6rem' }}>🦕 DINO_OS.EXE</span>
+            <span style={{ fontSize: '1.2rem' }}>🦕</span>
+            DINO ASSISTANT
           </div>
-          <div style={{ display: 'flex', gap: '4px' }}>
-            <button className="window-control-btn" onClick={toggleChat} title="Minimize">_</button>
-            <button className="window-control-btn close" onClick={toggleChat} title="Close">✕</button>
-          </div>
+          <button className="chatbot-close" onClick={toggleChat} title="Close">✕</button>
         </div>
-
-        {/* CRT Scanline overlay effect */}
-        <div className="crt-overlay" />
 
         {/* Messages */}
         <div className="chatbot-messages">
           {messages.map((msg, idx) => (
             <div key={idx} className={`chatbot-message ${msg.role}`}>
-              <div className="message-sender">
-                {msg.role === 'user' ? 'YOU >' : 'DINO >'}
-              </div>
               <div className="message-bubble">
                 {msg.content}
               </div>
@@ -164,7 +146,6 @@ export default function Chatbot() {
           ))}
           {isLoading && (
             <div className="chatbot-message assistant">
-              <div className="message-sender">DINO &gt;</div>
               <div className="message-bubble loading">
                 <span className="dot"></span>
                 <span className="dot"></span>
@@ -175,27 +156,20 @@ export default function Chatbot() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Console Input Bar */}
+        {/* Input Bar */}
         <form className="chatbot-input-area" onSubmit={sendMessage}>
-          <span className="input-prompt">&gt;</span>
           <input
             type="text"
-            placeholder="Type a message or 'help'..."
+            placeholder="Ask about a tool..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
             disabled={isLoading}
             autoComplete="off"
           />
           <button type="submit" disabled={!input.trim() || isLoading} aria-label="Send">
-            EXE
+            Send
           </button>
         </form>
-
-        {/* Retro DOS-like Status Bar */}
-        <div className="chatbot-status-bar">
-          <span>DINO-DOS V1.0</span>
-          <span>RAM: 640KB OK</span>
-        </div>
       </div>
 
       {/* Floating Action Button */}

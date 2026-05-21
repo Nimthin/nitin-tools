@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { useAuth } from '@clerk/nextjs';
+import { useAuth, SignInButton, UserButton } from '@clerk/nextjs';
+import Link from 'next/link';
 import './chatbot.css';
 
 export default function ChatbotPage() {
@@ -10,7 +11,7 @@ export default function ChatbotPage() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedModel, setSelectedModel] = useState('gemini-2.5-flash');
+  const [selectedModel, setSelectedModel] = useState('llama-3.1-8b-instant');
   const [disabledModels, setDisabledModels] = useState({});
 
   const [selectedFile, setSelectedFile] = useState(null); // { file, previewUrl, base64 }
@@ -23,6 +24,8 @@ export default function ChatbotPage() {
   const [currentChatId, setCurrentChatId] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isFetchingHistory, setIsFetchingHistory] = useState(false);
+  const isCreatingChatRef = useRef(false);
+  const saveQueueRef = useRef(null);
 
   const hasMessages = messages.length > 0;
 
@@ -125,7 +128,7 @@ export default function ChatbotPage() {
 
     try {
       if (currentChatId) {
-        await fetch('/api/chat/history', {
+        const res = await fetch('/api/chat/history', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
@@ -134,8 +137,18 @@ export default function ChatbotPage() {
             title: updatedMessages[0]?.content.substring(0, 40) + "..."
           })
         });
+        if (!res.ok) {
+          const errorData = await res.json();
+          console.error("Supabase Save Error (PUT):", errorData.error);
+        }
         loadChatHistory();
       } else {
+        if (isCreatingChatRef.current) {
+          saveQueueRef.current = updatedMessages;
+          return;
+        }
+
+        isCreatingChatRef.current = true;
         const res = await fetch('/api/chat/history', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -145,13 +158,34 @@ export default function ChatbotPage() {
           })
         });
         const data = await res.json();
-        if (data.chat) {
-          setCurrentChatId(data.chat.id);
+        isCreatingChatRef.current = false;
+
+        if (res.ok && data.chat) {
+          const newId = data.chat.id;
+          setCurrentChatId(newId);
           loadChatHistory();
+
+          if (saveQueueRef.current) {
+            const queuedMessages = saveQueueRef.current;
+            saveQueueRef.current = null;
+            await fetch('/api/chat/history', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                id: newId, 
+                messages: queuedMessages,
+                title: queuedMessages[0]?.content.substring(0, 40) + "..."
+              })
+            });
+            loadChatHistory();
+          }
+        } else {
+          console.error("Supabase Save Error (POST):", data.error || data.message);
         }
       }
     } catch (e) {
       console.error("Failed to sync chat to DB", e);
+      isCreatingChatRef.current = false;
     }
   };
 
@@ -174,8 +208,6 @@ export default function ChatbotPage() {
     setInput('');
     removeFile();
     setIsLoading(true);
-
-    saveChatToDb(newMessages);
 
     try {
       const response = await fetch('/api/chat', {
@@ -222,9 +254,8 @@ export default function ChatbotPage() {
   };
 
   const modelsList = [
-    { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', vision: true },
-    { id: 'meta-llama/llama-4-scout-17b-16e-instruct', name: 'Llama 4 Scout', vision: true },
-    { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 8B', vision: false },
+    { id: 'meta-llama/llama-4-scout-17b-16e-instruct', name: 'Text + Image', vision: true },
+    { id: 'llama-3.1-8b-instant', name: 'Text Only', vision: false },
   ];
 
   const currentModelConfig = modelsList.find(m => m.id === selectedModel) || modelsList[0];
@@ -257,7 +288,14 @@ export default function ChatbotPage() {
 
         <div className="history-list">
           {!isSignedIn ? (
-            <div className="sidebar-empty">Sign in to save chats</div>
+            <div className="sidebar-empty">
+              <p style={{ marginBottom: '12px' }}>Sign in to save chats</p>
+              <SignInButton mode="modal">
+                <button className="sidebar-signin-btn">
+                  Sign In
+                </button>
+              </SignInButton>
+            </div>
           ) : isFetchingHistory && chatHistory.length === 0 ? (
             <div className="sidebar-empty">Loading...</div>
           ) : chatHistory.length === 0 ? (
@@ -279,16 +317,34 @@ export default function ChatbotPage() {
 
       <div className="ai-chat-main">
         <div className="main-header">
-          {!isSidebarOpen && (
-            <button className="toggle-sidebar-btn show" onClick={() => setIsSidebarOpen(true)}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-            </button>
-          )}
+          <div className="main-header-left">
+            {!isSidebarOpen && (
+              <button className="toggle-sidebar-btn-inline" onClick={() => setIsSidebarOpen(true)}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+              </button>
+            )}
+            <Link href="/" className="chatbot-back-btn">
+              ← Back to Tools
+            </Link>
+          </div>
+          <div className="main-header-title">🦕 DinoChat</div>
+          <div className="main-header-right">
+            {!isLoaded ? null : isSignedIn ? (
+              <UserButton appearance={{ elements: { userButtonAvatarBox: { width: 30, height: 30, border: '2px solid var(--retro-border)', borderRadius: '4px' } } }} />
+            ) : (
+              <SignInButton mode="modal">
+                <button className="header-signin-btn">
+                  Sign In
+                </button>
+              </SignInButton>
+            )}
+          </div>
         </div>
 
         <div className={`ai-chat-body ${hasMessages ? 'has-messages' : ''}`}>
           {!hasMessages && (
             <div className="ai-chat-welcome">
+              <div className="welcome-avatar">🤖</div>
               <h1 className="ai-chat-title">How can I help?</h1>
               <p className="ai-chat-subtitle">
                 Ask me anything — code, writing, math, ideas, or just chat.
