@@ -9,7 +9,14 @@ export default function SummarizePdf() {
   const [error, setError] = useState(null);
   const [chromeAiAvailable, setChromeAiAvailable] = useState(false);
   const [usingFallback, setUsingFallback] = useState(false);
+  const [selectedModel, setSelectedModel] = useState('gemini-2.5-flash');
   const fileInputRef = useRef(null);
+
+  const modelsList = [
+    { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' },
+    { id: 'meta-llama/llama-4-scout-17b-16e-instruct', name: 'Llama 4 Scout' },
+    { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 8B' },
+  ];
 
   useEffect(() => {
     setChromeAiAvailable(!!(typeof window !== 'undefined' && window.ai));
@@ -43,7 +50,7 @@ export default function SummarizePdf() {
     try {
       const text = await extractText(selectedFile);
       
-      if (window.ai) {
+      if (window.ai && selectedModel === 'local-chrome-ai') {
         let session;
         try {
           session = await window.ai.assistant.create();
@@ -73,7 +80,7 @@ export default function SummarizePdf() {
                 content: `Please summarize the following document in a concise, bullet-point format. Focus on core findings and render them beautifully:\n\n${text.substring(0, 15000)}`
               }
             ],
-            selectedModel: 'gemini-2.5-flash'
+            selectedModel: selectedModel
           })
         });
 
@@ -95,9 +102,36 @@ export default function SummarizePdf() {
   return (
     <div className="tool-page">
       <Link href="/tools/pdf" className="tool-page-back">← Back to PDF Toolkit</Link>
-      <div className="tool-page-header">
-        <h1>🤖 Summarize PDF</h1>
-        <p>Uses local Chrome Built-in AI or Server fallback to instantly summarize your PDF documents.</p>
+      <div className="tool-page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+        <div>
+          <h1>🤖 Summarize PDF</h1>
+          <p>Uses local Chrome Built-in AI or Server fallback to instantly summarize your PDF documents.</p>
+        </div>
+        
+        {/* Model Selection Dropdown */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ fontFamily: 'var(--font-pixel)', fontSize: '0.8rem', color: '#ffcc00' }}>AI Model:</span>
+          <select
+            value={selectedModel}
+            onChange={(e) => setSelectedModel(e.target.value)}
+            style={{
+              fontFamily: 'var(--font-pixel)',
+              fontSize: '0.8rem',
+              padding: '8px 12px',
+              background: '#2d1b4e',
+              border: '2px solid var(--pixel-border)',
+              color: '#fff',
+              cursor: 'pointer'
+            }}
+          >
+            {chromeAiAvailable && (
+              <option value="local-chrome-ai">Chrome Local AI (window.ai)</option>
+            )}
+            {modelsList.map((m) => (
+              <option key={m.id} value={m.id}>{m.name}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="result-container" style={{ padding: '20px', background: 'var(--pixel-bg-card)', border: '3px solid var(--pixel-border)' }}>
@@ -107,7 +141,9 @@ export default function SummarizePdf() {
           <div className="upload-zone" onClick={() => fileInputRef.current?.click()}>
             <div className="upload-zone-icon">🤖</div>
             <div className="upload-zone-text">Click or drag a PDF here to summarize</div>
-            <div className="upload-zone-hint">Runs locally via window.ai, or automatically falls back to Server AI</div>
+            <div className="upload-zone-hint">
+              Summarizes using {selectedModel === 'local-chrome-ai' ? 'your local browser AI' : modelsList.find(m => m.id === selectedModel)?.name}
+            </div>
             <input type="file" ref={fileInputRef} onChange={(e) => e.target.files[0] && handleSummarize(e.target.files[0])} accept="application/pdf" style={{ display: 'none' }} />
           </div>
         )}
@@ -116,7 +152,7 @@ export default function SummarizePdf() {
           <div style={{ textAlign: 'center', padding: '60px' }}>
             <span className="spinner" style={{ width: 60, height: 60, borderWidth: 6, borderColor: 'var(--pixel-green)', borderTopColor: 'transparent' }}></span>
             <h3 style={{ marginTop: '24px', fontFamily: 'var(--font-pixel)', color: 'var(--pixel-green)', textShadow: '2px 2px 0 #000' }}>
-              {usingFallback ? 'SERVER AI IS SUMMARIZING...' : 'LOCAL AI IS SUMMARIZING...'}
+              {selectedModel === 'local-chrome-ai' ? 'LOCAL AI IS SUMMARIZING...' : 'SERVER AI IS SUMMARIZING...'}
             </h3>
           </div>
         )}
@@ -124,7 +160,7 @@ export default function SummarizePdf() {
         {summary && !isProcessing && (
           <div>
             <h3 style={{ fontFamily: 'var(--font-pixel)', color: 'var(--pixel-cyan)', marginBottom: '20px', textShadow: '2px 2px 0 #000' }}>
-              SUMMARY {usingFallback && '(VIA SERVER AI)'}:
+              SUMMARY ({selectedModel === 'local-chrome-ai' ? 'LOCAL CHROME AI' : modelsList.find(m => m.id === selectedModel)?.name.toUpperCase()}):
             </h3>
             <div style={{ background: '#2d1b4e', padding: '20px', border: '2px solid var(--pixel-border)', color: '#fff', lineHeight: 1.6, whiteSpace: 'pre-wrap', fontSize: '1.05rem', maxHeight: '500px', overflowY: 'auto' }}>
               {summary}
@@ -137,7 +173,7 @@ export default function SummarizePdf() {
           </div>
         )}
 
-        {!file && !isProcessing && !chromeAiAvailable && (
+        {!file && !isProcessing && !chromeAiAvailable && selectedModel === 'local-chrome-ai' && (
           <div style={{
             marginTop: '25px',
             padding: '15px',
@@ -149,7 +185,7 @@ export default function SummarizePdf() {
             textAlign: 'left'
           }}>
             <strong>ℹ️ Chrome Built-in AI is not enabled:</strong>
-            <p style={{ margin: '5px 0' }}>The app will automatically fall back to using <strong>Server AI (Gemini 2.5 Flash)</strong>. However, if you want 100% private, on-device summaries, you can enable Chrome AI by following these steps:</p>
+            <p style={{ margin: '5px 0' }}>To run 100% private, on-device summaries locally:</p>
             <ol style={{ margin: '5px 0 0 20px', padding: 0 }}>
               <li>Open Chrome Canary or Dev version.</li>
               <li>Navigate to <code>chrome://flags/#optimization-guide-on-device-model</code> and set it to <strong>Enabled BypassPrefGesture</strong>.</li>
