@@ -577,31 +577,21 @@ export default function FileShare() {
                           </button>
                         </div>
 
-                        <div style={{ display: 'flex', gap: 8, flexDirection: 'column' }}>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <button 
+                            className="btn btn-ghost" 
+                            onClick={copyCode}
+                            style={{ flex: 1, padding: 10, fontSize: '0.7rem' }}
+                          >
+                            {copiedCode ? '✓ CODE COPIED' : '📋 COPY CODE'}
+                          </button>
                           <button 
                             className="btn btn-primary" 
-                            onClick={handleDownloadDirectly}
-                            disabled={isRetrieving}
-                            style={{ padding: 10, fontSize: '0.75rem', background: 'var(--pixel-green, #4caf50)', color: '#fff' }}
+                            onClick={resetShare}
+                            style={{ flex: 1, padding: 10, fontSize: '0.7rem', background: '#000', color: '#fff' }}
                           >
-                            {isRetrieving ? 'DOWNLOADING...' : '📥 DOWNLOAD FILE'}
+                            🔄 SHARE ANOTHER
                           </button>
-                          <div style={{ display: 'flex', gap: 8 }}>
-                            <button 
-                              className="btn btn-ghost" 
-                              onClick={copyCode}
-                              style={{ flex: 1, padding: 10, fontSize: '0.7rem' }}
-                            >
-                              {copiedCode ? '✓ CODE COPIED' : '📋 COPY CODE'}
-                            </button>
-                            <button 
-                              className="btn btn-primary" 
-                              onClick={resetShare}
-                              style={{ flex: 1, padding: 10, fontSize: '0.7rem', background: '#000', color: '#fff' }}
-                            >
-                              🔄 SHARE ANOTHER
-                            </button>
-                          </div>
                         </div>
                       </div>
                     </div>
