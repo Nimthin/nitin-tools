@@ -1,7 +1,6 @@
 import { ClerkProvider } from '@clerk/nextjs';
 import './globals.css';
-import DynamicBackground from '@/components/DynamicBackground';
-import DarkModeToggle from '@/components/DarkModeToggle';
+import ClientLayoutWrapper from '@/components/ClientLayoutWrapper';
 
 export const metadata = {
   title: 'DinoTools — Retro Utility Toolkit 🦕',
@@ -40,9 +39,7 @@ export default function RootLayout({ children }) {
           ` }} />
         </head>
         <body>
-          <DynamicBackground />
-          <DarkModeToggle />
-          <main>{children}</main>
+          <ClientLayoutWrapper>{children}</ClientLayoutWrapper>
         </body>
       </html>
     </ClerkProvider>

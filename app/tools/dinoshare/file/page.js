@@ -143,7 +143,7 @@ export default function FileShare() {
 
   const setupSuccessResult = async (code) => {
     const origin = window.location.origin;
-    const link = `${origin}/tools/dinoshare/file?code=${code}`;
+    const link = `${origin}/d/${code}`;
     
     try {
       const qrDataUrl = await QRCode.toDataURL(link, {

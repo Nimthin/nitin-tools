@@ -79,7 +79,7 @@ export default function ClipboardShare() {
 
   const setupSuccessResult = async (code) => {
     const origin = window.location.origin;
-    const link = `${origin}/tools/dinoshare/text?code=${code}`;
+    const link = `${origin}/d/${code}`;
     
     try {
       const qrDataUrl = await QRCode.toDataURL(link, {
