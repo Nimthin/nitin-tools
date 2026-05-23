@@ -1,8 +1,12 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useAuth, SignInButton, UserButton } from '@clerk/nextjs';
 import Link from 'next/link';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import './chatbot.css';
 
 export default function ChatbotPage() {
@@ -11,7 +15,7 @@ export default function ChatbotPage() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedModel, setSelectedModel] = useState('llama-3.1-8b-instant');
+  const [selectedModel, setSelectedModel] = useState('llama-3.3-70b-versatile');
   const [disabledModels, setDisabledModels] = useState({});
 
   const [selectedFile, setSelectedFile] = useState(null); // { file, previewUrl, base64 }
@@ -254,8 +258,9 @@ export default function ChatbotPage() {
   };
 
   const modelsList = [
-    { id: 'meta-llama/llama-4-scout-17b-16e-instruct', name: 'Text + Image', vision: true },
-    { id: 'llama-3.1-8b-instant', name: 'Text Only', vision: false },
+    { id: 'llama-3.3-70b-versatile', name: 'Smart (Default)', vision: false },
+    { id: 'meta-llama/llama-4-scout-17b-16e-instruct', name: 'Vision (Image)', vision: true },
+    { id: 'llama-3.1-8b-instant', name: 'Fast (Light)', vision: false },
   ];
 
   const currentModelConfig = modelsList.find(m => m.id === selectedModel) || modelsList[0];
@@ -370,8 +375,64 @@ export default function ChatbotPage() {
                       </div>
                     )}
                     {msg.content && (
-                      <div className="ai-msg-bubble">
-                        {msg.content}
+                      <div className={`ai-msg-bubble ${msg.role === 'assistant' ? 'markdown-body' : ''}`}>
+                        {msg.role === 'assistant' ? (
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              code({ node, inline, className, children, ...props }) {
+                                const match = /language-(\w+)/.exec(className || '');
+                                return !inline && match ? (
+                                  <SyntaxHighlighter
+                                    style={oneDark}
+                                    language={match[1]}
+                                    PreTag="div"
+                                    customStyle={{
+                                      margin: '8px 0',
+                                      borderRadius: '4px',
+                                      fontSize: '0.8rem',
+                                      border: '2px solid var(--retro-border)',
+                                    }}
+                                    {...props}
+                                  >
+                                    {String(children).replace(/\n$/, '')}
+                                  </SyntaxHighlighter>
+                                ) : (
+                                  <code className="inline-code" {...props}>
+                                    {children}
+                                  </code>
+                                );
+                              },
+                              img({ node, src, alt, ...props }) {
+                                let cleanSrc = src ? src.replace(/[{}]/g, '') : '';
+                                if (cleanSrc && cleanSrc.includes('pollinations.ai')) {
+                                  try {
+                                    let urlToParse = cleanSrc;
+                                    if (!urlToParse.startsWith('http://') && !urlToParse.startsWith('https://')) {
+                                      urlToParse = 'https://' + urlToParse;
+                                    }
+                                    const urlObj = new URL(urlToParse);
+                                    const promptMatch = urlObj.pathname.match(/\/prompt\/([^/]+)/);
+                                    const prompt = promptMatch ? promptMatch[1] : '';
+                                    if (prompt) {
+                                      const width = urlObj.searchParams.get('width') || '768';
+                                      const height = urlObj.searchParams.get('height') || '768';
+                                      const nologo = urlObj.searchParams.get('nologo') || 'true';
+                                      cleanSrc = `/api/chat/image?prompt=${prompt}&width=${width}&height=${height}&nologo=${nologo}`;
+                                    }
+                                  } catch (e) {
+                                    console.error("Failed to parse image URL", e);
+                                  }
+                                }
+                                return <img src={cleanSrc} alt={alt} {...props} />;
+                              },
+                            }}
+                          >
+                            {msg.content}
+                          </ReactMarkdown>
+                        ) : (
+                          msg.content
+                        )}
                       </div>
                     )}
                   </div>
