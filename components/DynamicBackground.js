@@ -35,6 +35,8 @@ export default function DynamicBackground() {
     bgColor = '#2196f3'; // Blue
   } else if (pathname?.startsWith('/tools/chatbot')) {
     bgColor = '#f4efe2'; // Retro beige/putty
+  } else if (pathname?.startsWith('/tools/file-share')) {
+    bgColor = '#673ab7'; // Deep Purple
   }
 
   const hasGrid = pathname === '/';

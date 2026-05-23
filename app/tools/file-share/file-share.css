@@ -1,0 +1,415 @@
+/* ==========================================================================
+   🦖 DinoShare — Retro Cross-Device File Transfer Tool CSS
+   ========================================================================== */
+
+.share-wrapper {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.share-card {
+  background: var(--pixel-bg-card, #1a1a1a);
+  border: 4px solid var(--pixel-border, #000);
+  box-shadow: var(--pixel-shadow, 6px 6px 0px #000);
+  padding: 24px;
+  margin-top: 10px;
+  position: relative;
+}
+
+/* Tabs */
+.share-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  background: #000;
+  padding: 6px;
+  border: 3px solid var(--pixel-border, #000);
+}
+
+.share-tab-btn {
+  flex: 1;
+  padding: 12px;
+  font-family: var(--font-pixel, 'Press Start 2P', monospace);
+  font-size: 0.75rem;
+  text-align: center;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: #888;
+  transition: all 0.1s ease;
+}
+
+.share-tab-btn:hover {
+  color: #fff;
+  background: #222;
+}
+
+.share-tab-btn.active {
+  background: var(--pixel-yellow, #ffeb3b);
+  color: #000;
+  box-shadow: inset -4px -4px 0px #c2b323;
+}
+
+/* Inner Panels */
+.share-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  animation: pixelFadeIn 0.2s steps(4) both;
+}
+
+@keyframes pixelFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.sub-tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 2px dashed #444;
+  padding-bottom: 12px;
+}
+
+.sub-tab-btn {
+  padding: 8px 12px;
+  font-family: var(--font-pixel, 'Press Start 2P', monospace);
+  font-size: 0.65rem;
+  background: #222;
+  border: 2px solid var(--pixel-border, #000);
+  color: #aaa;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.sub-tab-btn:hover {
+  background: #333;
+  color: #fff;
+}
+
+.sub-tab-btn.active {
+  background: var(--pixel-cyan, #00bcd4);
+  color: #000;
+  box-shadow: 2px 2px 0px #000;
+}
+
+/* File Upload Zone customization */
+.file-upload-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.upload-details {
+  background: #0d0d0d;
+  border: 2px solid var(--pixel-border, #000);
+  padding: 12px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.upload-file-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ccc;
+}
+
+.upload-file-name {
+  font-family: monospace;
+  word-break: break-all;
+}
+
+.upload-file-size {
+  color: #777;
+  font-size: 0.75rem;
+}
+
+/* Progress bar */
+.progress-container {
+  margin-top: 10px;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-pixel, 'Press Start 2P', monospace);
+  font-size: 0.6rem;
+  color: #aaa;
+  margin-bottom: 6px;
+}
+
+.progress-bar-bg {
+  height: 20px;
+  background: #000;
+  border: 2px solid var(--pixel-border, #000);
+  padding: 2px;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: var(--pixel-green, #4caf50);
+  transition: width 0.1s linear;
+}
+
+/* Text Clipboard Area */
+.text-area-label {
+  font-family: var(--font-pixel, 'Press Start 2P', monospace);
+  font-size: 0.65rem;
+  color: #aaa;
+  margin-bottom: 8px;
+}
+
+.text-area-input {
+  width: 100%;
+  min-height: 180px;
+  background: #0d0d0d;
+  color: #fff;
+  border: 3px solid var(--pixel-border, #000);
+  padding: 16px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.text-area-input:focus {
+  border-color: var(--pixel-cyan, #00bcd4);
+}
+
+/* Ticket Card / Share Info */
+.ticket-card {
+  background: #fffae6;
+  color: #111;
+  border: 4px double #000;
+  padding: 20px;
+  margin: 16px 0;
+  position: relative;
+  box-shadow: 4px 4px 0px #000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* Retro ticket notches on the sides */
+.ticket-card::before, .ticket-card::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  background: var(--pixel-bg-card, #1a1a1a);
+  border: 4px solid var(--pixel-border, #000);
+  border-radius: 50%;
+  margin-top: -10px;
+}
+
+.ticket-card::before {
+  left: -12px;
+}
+
+.ticket-card::after {
+  right: -12px;
+}
+
+.ticket-title {
+  font-family: var(--font-pixel, 'Press Start 2P', monospace);
+  font-size: 0.65rem;
+  color: #666;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.ticket-code-label {
+  font-family: var(--font-pixel, 'Press Start 2P', monospace);
+  font-size: 0.55rem;
+  color: #777;
+}
+
+.ticket-code {
+  font-family: var(--font-pixel, 'Press Start 2P', monospace);
+  font-size: 2.2rem;
+  font-weight: bold;
+  color: #000;
+  margin: 12px 0;
+  letter-spacing: 4px;
+}
+
+.ticket-qr {
+  background: #fff;
+  padding: 10px;
+  border: 2px solid #000;
+  margin-bottom: 12px;
+}
+
+.ticket-meta {
+  font-size: 0.75rem;
+  color: #444;
+  font-family: monospace;
+}
+
+.ticket-expiry {
+  font-family: var(--font-pixel, 'Press Start 2P', monospace);
+  font-size: 0.5rem;
+  color: #d32f2f;
+  margin-top: 10px;
+}
+
+/* Link Group */
+.link-group {
+  display: flex;
+  border: 3px solid var(--pixel-border, #000);
+  background: #000;
+  margin-top: 10px;
+}
+
+.link-input {
+  flex: 1;
+  background: #0d0d0d;
+  color: #fff;
+  border: none;
+  padding: 10px 12px;
+  font-size: 0.8rem;
+  outline: none;
+  font-family: monospace;
+}
+
+.link-copy-btn {
+  background: var(--pixel-cyan, #00bcd4);
+  color: #000;
+  font-family: var(--font-pixel, 'Press Start 2P', monospace);
+  font-size: 0.65rem;
+  padding: 10px 14px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.link-copy-btn:hover {
+  background: #008ba3;
+}
+
+.link-copy-btn:active {
+  background: #00768b;
+}
+
+/* Code Input Box (Download) */
+.code-input-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.digit-inputs {
+  display: flex;
+  gap: 12px;
+}
+
+.digit-input {
+  width: 55px;
+  height: 70px;
+  border: 3px solid var(--pixel-border, #000);
+  background: #000;
+  color: var(--pixel-yellow, #ffeb3b);
+  text-align: center;
+  font-family: var(--font-pixel, 'Press Start 2P', monospace);
+  font-size: 1.8rem;
+  outline: none;
+}
+
+.digit-input:focus {
+  border-color: var(--pixel-cyan, #00bcd4);
+  box-shadow: 0 0 8px rgba(0, 188, 212, 0.4);
+}
+
+/* Result panel for downloads */
+.download-result {
+  background: #0d0d0d;
+  border: 2px solid var(--pixel-border, #000);
+  padding: 18px;
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.download-result-header {
+  font-family: var(--font-pixel, 'Press Start 2P', monospace);
+  font-size: 0.7rem;
+  color: var(--pixel-yellow, #ffeb3b);
+  border-bottom: 1px dashed #333;
+  padding-bottom: 8px;
+}
+
+.download-file-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #151515;
+  border: 2px solid #333;
+  padding: 12px;
+}
+
+.download-file-icon {
+  font-size: 1.8rem;
+}
+
+.download-file-meta {
+  flex: 1;
+  margin-left: 12px;
+}
+
+.download-file-title {
+  font-size: 0.85rem;
+  color: #fff;
+  font-family: monospace;
+  word-break: break-all;
+}
+
+.download-file-specs {
+  font-size: 0.75rem;
+  color: #777;
+  margin-top: 4px;
+}
+
+.clipboard-result-box {
+  background: #111;
+  border: 2px solid #333;
+  padding: 14px;
+  max-height: 250px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-size: 0.85rem;
+  color: #fff;
+  font-family: monospace;
+}
+
+/* Warnings/Info */
+.retro-alert {
+  background: #2a1b1b;
+  border: 2px solid #f44336;
+  color: #ff9800;
+  padding: 12px;
+  font-size: 0.75rem;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.retro-success {
+  background: #1b2a1b;
+  border: 2px solid #4caf50;
+  color: #8bc34a;
+  padding: 12px;
+  font-size: 0.75rem;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}

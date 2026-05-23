@@ -20,6 +20,7 @@ const allTools = [
   { title: 'File converter', description: 'Convert files, documents, and media formats instantly.', icon: <PixelIcon type="convert" size={32} />, href: '/tools/file-converter' },
   { title: 'NitinMusic',     description: 'Ad-free music streaming and trending charts.',           icon: <PixelIcon type="music"   size={32} />, href: '/tools/music-player' },
   { title: 'AI Chatbot',     description: 'Chat with an intelligent AI assistant.',                 icon: <PixelIcon type="bot"     size={32} />, href: '/tools/chatbot' },
+  { title: 'DinoShare',      description: 'Upload & share files across devices instantly.',         icon: <PixelIcon type="share"   size={32} />, href: '/tools/file-share' },
 ];
 
 const subTools = [
