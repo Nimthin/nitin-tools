@@ -277,23 +277,49 @@ export default function ClipboardShare() {
             )}
 
             {retrievedItem && (
-              <div className="download-result" style={{ display: 'block', margin: '10px 0' }}>
-                <div className="download-result-header">
-                  ✏️ TEXT SHARED WITH YOU
+              <div style={{ margin: '10px 0' }}>
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '8px',
+                  marginBottom: '14px',
+                  paddingBottom: '10px',
+                  borderBottom: '1px dashed #333'
+                }}>
+                  <span style={{ fontSize: '1rem' }}>📋</span>
+                  <span style={{ 
+                    fontFamily: 'var(--font-pixel)', 
+                    fontSize: '0.6rem', 
+                    letterSpacing: '1px', 
+                    color: 'var(--pixel-cyan, #00bcd4)'
+                  }}>
+                    TEXT SHARED WITH YOU
+                  </span>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 12 }}>
-                  <div className="clipboard-result-box">
-                    {retrievedItem.text}
-                  </div>
-                  <button 
-                    className="btn btn-primary" 
-                    onClick={copyRetrievedText}
-                    style={{ padding: 10, background: 'var(--pixel-cyan, #00bcd4)', color: '#000', fontSize: '0.75rem' }}
-                  >
-                    {copiedRetrievedText ? '✓ COPIED TO CLIPBOARD' : '📋 COPY TO CLIPBOARD'}
-                  </button>
+                <div className="clipboard-result-box">
+                  {retrievedItem.text}
                 </div>
+
+                <button 
+                  className="btn btn-primary" 
+                  onClick={copyRetrievedText}
+                  style={{ 
+                    padding: '12px', 
+                    background: copiedRetrievedText ? 'var(--pixel-green, #4caf50)' : 'var(--pixel-cyan, #00bcd4)', 
+                    color: '#000', 
+                    fontSize: '0.75rem',
+                    fontFamily: 'var(--font-pixel)',
+                    width: '100%',
+                    marginTop: '14px',
+                    border: '3px solid #000',
+                    boxShadow: copiedRetrievedText ? '3px 3px 0px #1b5e20' : '3px 3px 0px #00768b',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  {copiedRetrievedText ? '✓ COPIED TO CLIPBOARD' : '📋 COPY TO CLIPBOARD'}
+                </button>
               </div>
             )}
 
@@ -474,23 +500,49 @@ export default function ClipboardShare() {
                   </div>
 
                   {retrievedItem && (
-                    <div className="download-result">
-                      <div className="download-result-header">
-                        ✏️ RETRIEVED TEXT CLIPBOARD
+                    <div style={{ marginTop: '14px' }}>
+                      <div style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '8px',
+                        marginBottom: '14px',
+                        paddingBottom: '10px',
+                        borderBottom: '1px dashed #333'
+                      }}>
+                        <span style={{ fontSize: '1rem' }}>📋</span>
+                        <span style={{ 
+                          fontFamily: 'var(--font-pixel)', 
+                          fontSize: '0.6rem', 
+                          letterSpacing: '1px', 
+                          color: 'var(--pixel-cyan, #00bcd4)'
+                        }}>
+                          RETRIEVED TEXT CLIPBOARD
+                        </span>
                       </div>
 
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                        <div className="clipboard-result-box">
-                          {retrievedItem.text}
-                        </div>
-                        <button 
-                          className="btn btn-primary" 
-                          onClick={copyRetrievedText}
-                          style={{ padding: 10, background: 'var(--pixel-cyan, #00bcd4)', color: '#000', fontSize: '0.7rem' }}
-                        >
-                          {copiedRetrievedText ? '✓ COPIED TO CLIPBOARD' : '📋 COPY TO CLIPBOARD'}
-                        </button>
+                      <div className="clipboard-result-box">
+                        {retrievedItem.text}
                       </div>
+
+                      <button 
+                        className="btn btn-primary" 
+                        onClick={copyRetrievedText}
+                        style={{ 
+                          padding: '12px', 
+                          background: copiedRetrievedText ? 'var(--pixel-green, #4caf50)' : 'var(--pixel-cyan, #00bcd4)', 
+                          color: '#000', 
+                          fontSize: '0.7rem',
+                          fontFamily: 'var(--font-pixel)',
+                          width: '100%',
+                          marginTop: '14px',
+                          border: '3px solid #000',
+                          boxShadow: copiedRetrievedText ? '3px 3px 0px #1b5e20' : '3px 3px 0px #00768b',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        {copiedRetrievedText ? '✓ COPIED TO CLIPBOARD' : '📋 COPY TO CLIPBOARD'}
+                      </button>
                     </div>
                   )}
                 </div>

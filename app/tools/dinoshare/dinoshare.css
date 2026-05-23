@@ -170,14 +170,14 @@
 
 .tool-page textarea.text-area-input {
   width: 100%;
-  min-height: 180px;
+  min-height: 350px;
   background-color: #ffffff !important;
   color: #000000 !important;
   border: 3px solid var(--pixel-border, #000) !important;
-  padding: 16px;
+  padding: 20px;
   font-family: var(--font-body), -apple-system, BlinkMacSystemFont, sans-serif !important;
-  font-size: 0.95rem !important;
-  line-height: 1.6 !important;
+  font-size: 1rem !important;
+  line-height: 1.7 !important;
   resize: vertical;
   outline: none;
   box-sizing: border-box;
@@ -386,19 +386,40 @@
   margin-top: 4px;
 }
 
-.tool-page .clipboard-result-box {
-  background: #111 !important;
-  border: 2px solid #333 !important;
-  padding: 14px;
-  max-height: 250px;
+.tool-page .clipboard-result-box,
+.clipboard-result-box {
+  background: #0a0a0a !important;
+  border: 2px solid #2a2a2a !important;
+  border-radius: 4px;
+  padding: 20px;
+  max-height: 400px;
   overflow-y: auto;
   white-space: pre-wrap;
-  word-break: break-all;
+  word-break: break-word;
   font-size: 0.95rem !important;
-  line-height: 1.6 !important;
-  color: #fff !important;
+  line-height: 1.7 !important;
+  color: #d4d4d4 !important;
   font-family: var(--font-body), -apple-system, BlinkMacSystemFont, sans-serif !important;
   text-shadow: none !important;
+  scrollbar-width: thin;
+  scrollbar-color: #333 #0a0a0a;
+}
+
+.clipboard-result-box::-webkit-scrollbar {
+  width: 6px;
+}
+
+.clipboard-result-box::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+.clipboard-result-box::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+}
+
+.clipboard-result-box::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
 
 /* Warnings/Info */

@@ -151,33 +151,51 @@ export default function StandaloneSharePage({ params }) {
                   </div>
                 </div>
               ) : (
-                <div className="download-result" style={{ display: 'block', margin: 0, background: 'transparent', border: 'none', padding: 0 }}>
-                  <div className="download-result-header" style={{ fontSize: '0.6rem', letterSpacing: '1px', marginBottom: '16px' }}>
-                    ✏️ SHARED CLIPBOARD TEXT
+                <div style={{ margin: 0 }}>
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '8px',
+                    marginBottom: '16px',
+                    paddingBottom: '12px',
+                    borderBottom: '1px dashed #333'
+                  }}>
+                    <span style={{ fontSize: '1.2rem' }}>📋</span>
+                    <span style={{ 
+                      fontFamily: 'var(--font-pixel)', 
+                      fontSize: '0.6rem', 
+                      letterSpacing: '1px', 
+                      color: 'var(--pixel-cyan, #00bcd4)',
+                      textTransform: 'uppercase'
+                    }}>
+                      Shared Clipboard Text
+                    </span>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    <div className="clipboard-result-box" style={{ maxHeight: '350px', background: '#0e0e0e', border: '2px solid #222', fontSize: '0.95rem' }}>
-                      {retrievedItem.text}
-                    </div>
-                    <button 
-                      className="btn btn-primary" 
-                      onClick={copyText}
-                      style={{ 
-                        padding: '14px', 
-                        background: 'var(--pixel-cyan, #00bcd4)', 
-                        color: '#000', 
-                        fontSize: '0.8rem',
-                        fontFamily: 'var(--font-pixel)',
-                        boxShadow: '4px 4px 0px #00768b',
-                        border: '3px solid #000',
-                        width: '100%',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      {copiedText ? '✓ COPIED!' : 'COPY TO CLIPBOARD'}
-                    </button>
+                  <div className="clipboard-result-box">
+                    {retrievedItem.text}
                   </div>
+
+                  <button 
+                    className="btn btn-primary" 
+                    onClick={copyText}
+                    style={{ 
+                      padding: '14px', 
+                      background: copiedText ? 'var(--pixel-green, #4caf50)' : 'var(--pixel-cyan, #00bcd4)', 
+                      color: '#000', 
+                      fontSize: '0.8rem',
+                      fontFamily: 'var(--font-pixel)',
+                      boxShadow: copiedText ? '4px 4px 0px #1b5e20' : '4px 4px 0px #00768b',
+                      border: '3px solid #000',
+                      width: '100%',
+                      cursor: 'pointer',
+                      marginTop: '16px',
+                      transition: 'all 0.15s ease',
+                      letterSpacing: '0.5px'
+                    }}
+                  >
+                    {copiedText ? '✓ COPIED TO CLIPBOARD!' : '📋 COPY TO CLIPBOARD'}
+                  </button>
                 </div>
               )}
             </div>
