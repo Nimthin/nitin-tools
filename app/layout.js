@@ -1,6 +1,7 @@
 import { ClerkProvider } from '@clerk/nextjs';
 import './globals.css';
 import DynamicBackground from '@/components/DynamicBackground';
+import DarkModeToggle from '@/components/DarkModeToggle';
 
 export const metadata = {
   title: 'DinoTools — Retro Utility Toolkit 🦕',
@@ -24,8 +25,23 @@ export default function RootLayout({ children }) {
       }}
     >
       <html lang="en">
+        <head>
+          <script dangerouslySetInnerHTML={{ __html: `
+            (function() {
+              try {
+                const savedTheme = localStorage.getItem('dino-theme');
+                if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                  document.documentElement.setAttribute('data-theme', 'dark');
+                } else {
+                  document.documentElement.setAttribute('data-theme', 'light');
+                }
+              } catch (e) {}
+            })();
+          ` }} />
+        </head>
         <body>
           <DynamicBackground />
+          <DarkModeToggle />
           <main>{children}</main>
         </body>
       </html>

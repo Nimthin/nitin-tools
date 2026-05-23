@@ -35,8 +35,12 @@ export default function DynamicBackground() {
     bgColor = '#2196f3'; // Blue
   } else if (pathname?.startsWith('/tools/chatbot')) {
     bgColor = '#f4efe2'; // Retro beige/putty
-  } else if (pathname?.startsWith('/tools/file-share')) {
-    bgColor = '#673ab7'; // Deep Purple
+  } else if (pathname === '/tools/dinoshare') {
+    bgColor = '#673ab7'; // Deep Purple (Hub)
+  } else if (pathname === '/tools/dinoshare/file') {
+    bgColor = '#5c6bc0'; // Indigo/Slate Blue (File share)
+  } else if (pathname === '/tools/dinoshare/text') {
+    bgColor = '#009688'; // Teal (Text Clipboard)
   }
 
   const hasGrid = pathname === '/';

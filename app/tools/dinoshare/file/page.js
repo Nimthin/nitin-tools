@@ -3,20 +3,15 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import QRCode from 'qrcode';
-import './file-share.css';
+import '../dinoshare.css';
 
 export default function FileShare() {
   const [activeTab, setActiveTab] = useState('send'); // 'send' or 'receive'
-  const [sendType, setSendType] = useState('file'); // 'file' or 'text'
   
   // File upload states
   const [selectedFile, setSelectedFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  
-  // Text share states
-  const [clipboardText, setClipboardText] = useState('');
-  const [isSavingText, setIsSavingText] = useState(false);
   
   // Share result states
   const [shareCode, setShareCode] = useState('');
@@ -29,7 +24,6 @@ export default function FileShare() {
   const [codeDigits, setCodeDigits] = useState(['', '', '', '']);
   const [isRetrieving, setIsRetrieving] = useState(false);
   const [retrievedItem, setRetrievedItem] = useState(null); // { type, text, downloadUrl, fileName, fileSize }
-  const [copiedRetrievedText, setCopiedRetrievedText] = useState(false);
   
   // Global message states
   const [errorMessage, setErrorMessage] = useState('');
@@ -39,7 +33,6 @@ export default function FileShare() {
   const fileInputRef = useRef(null);
   const digitInputRefs = useRef([]);
 
-  // Check URL parameters for direct share codes (e.g. ?code=1234)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const queryCode = params.get('code');
@@ -50,7 +43,6 @@ export default function FileShare() {
     }
   }, []);
 
-  // Format bytes helper
   const formatBytes = (bytes, decimals = 2) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -60,7 +52,6 @@ export default function FileShare() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
   };
 
-  // Drag and drop handlers
   const [dragOver, setDragOver] = useState(false);
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -85,7 +76,6 @@ export default function FileShare() {
     }
   };
 
-  // Upload file flow
   const handleFileUpload = async () => {
     if (!selectedFile) return;
     setIsUploading(true);
@@ -94,8 +84,7 @@ export default function FileShare() {
     setIsDemoWarning(false);
 
     try {
-      // 1. Get presigned PUT URL from API route
-      const response = await fetch('/api/file-share/upload', {
+      const response = await fetch('/api/dinoshare/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -109,7 +98,6 @@ export default function FileShare() {
 
       if (!response.ok) {
         if (response.status === 503 && data.isDemo) {
-          // R2 not configured demo fallback
           setupDemoResult(data.code);
           return;
         }
@@ -118,7 +106,6 @@ export default function FileShare() {
 
       const { code, uploadUrl } = data;
 
-      // 2. Perform direct PUT upload to R2 with progress monitoring
       const xhr = new XMLHttpRequest();
       xhr.open('PUT', uploadUrl, true);
       xhr.setRequestHeader('Content-Type', selectedFile.type || 'application/octet-stream');
@@ -152,44 +139,9 @@ export default function FileShare() {
     }
   };
 
-  // Save text flow
-  const handleTextSave = async () => {
-    if (!clipboardText.trim()) return;
-    setIsSavingText(true);
-    setErrorMessage('');
-    setIsDemoWarning(false);
-
-    try {
-      const response = await fetch('/api/file-share/text', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: clipboardText }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        if (response.status === 503 && data.isDemo) {
-          // Demo fallback
-          setupDemoResult(data.code);
-          return;
-        }
-        throw new Error(data.error || 'Failed to save text');
-      }
-
-      await setupSuccessResult(data.code);
-    } catch (err) {
-      console.error(err);
-      setErrorMessage(err.message || 'An error occurred while saving text.');
-    } finally {
-      setIsSavingText(false);
-    }
-  };
-
-  // Shared helper to generate code display, link, and QR code
   const setupSuccessResult = async (code) => {
     const origin = window.location.origin;
-    const link = `${origin}/tools/file-share?code=${code}`;
+    const link = `${origin}/tools/dinoshare/file?code=${code}`;
     
     try {
       const qrDataUrl = await QRCode.toDataURL(link, {
@@ -216,7 +168,6 @@ export default function FileShare() {
     await setupSuccessResult(code);
   };
 
-  // Copy helpers
   const copyLink = () => {
     if (!shareLink) return;
     navigator.clipboard.writeText(shareLink);
@@ -231,16 +182,8 @@ export default function FileShare() {
     setTimeout(() => setCopiedCode(false), 2000);
   };
 
-  const copyRetrievedText = () => {
-    if (!retrievedItem || !retrievedItem.text) return;
-    navigator.clipboard.writeText(retrievedItem.text);
-    setCopiedRetrievedText(true);
-    setTimeout(() => setCopiedRetrievedText(false), 2000);
-  };
-
   const resetShare = () => {
     setSelectedFile(null);
-    setClipboardText('');
     setShareCode('');
     setShareLink('');
     setQrCodeUrl('');
@@ -250,7 +193,6 @@ export default function FileShare() {
     setIsDemoWarning(false);
   };
 
-  // Retrieve flow
   const handleRetrieve = async (codeString) => {
     const targetCode = codeString || codeDigits.join('');
     if (targetCode.length !== 4) {
@@ -265,7 +207,7 @@ export default function FileShare() {
     setIsDemoWarning(false);
 
     try {
-      const response = await fetch('/api/file-share/download', {
+      const response = await fetch('/api/dinoshare/download', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: targetCode }),
@@ -281,29 +223,87 @@ export default function FileShare() {
         setIsDemoWarning(true);
       }
 
+      if (data.type === 'text') {
+        throw new Error("This code is for a Text Clipboard. Please retrieve it using the Text Clipboard tool!");
+      }
+
       setRetrievedItem(data);
-      setSuccessMessage('Item loaded successfully!');
+      setSuccessMessage('File loaded successfully!');
     } catch (err) {
       console.error(err);
-      setErrorMessage(err.message || 'Invalid code or the share has expired.');
+      setErrorMessage(err.message || 'Invalid code or the file has expired.');
     } finally {
       setIsRetrieving(false);
     }
   };
 
-  // Code input box helpers
+  const handleDownloadDirectly = async () => {
+    if (!shareCode) return;
+    
+    // In demo warning or if Supabase is not configured, download the uploaded local file directly from the browser
+    if (isDemoWarning) {
+      if (selectedFile) {
+        const url = URL.createObjectURL(selectedFile);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = selectedFile.name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        setSuccessMessage('File downloaded successfully (Demo)!');
+      } else {
+        setErrorMessage("Demo mode: No local file uploaded to download.");
+      }
+      return;
+    }
+
+    setIsRetrieving(true);
+    setErrorMessage('');
+    setSuccessMessage('');
+
+    try {
+      const response = await fetch('/api/dinoshare/download', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: shareCode }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to retrieve download link.');
+      }
+
+      if (data.downloadUrl) {
+        const a = document.createElement('a');
+        a.href = data.downloadUrl;
+        a.download = data.fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setSuccessMessage('File downloaded successfully!');
+      } else {
+        throw new Error("No download URL returned from the server.");
+      }
+    } catch (err) {
+      console.error(err);
+      setErrorMessage(err.message || 'Failed to download the file.');
+    } finally {
+      setIsRetrieving(false);
+    }
+  };
+
   const handleDigitChange = (index, val) => {
     const cleanVal = val.replace(/[^0-9]/g, '').slice(-1);
     const newDigits = [...codeDigits];
     newDigits[index] = cleanVal;
     setCodeDigits(newDigits);
 
-    // Auto focus next
     if (cleanVal && index < 3) {
       digitInputRefs.current[index + 1]?.focus();
     }
 
-    // Auto submit if complete
     const fullCode = newDigits.join('');
     if (fullCode.length === 4) {
       handleRetrieve(fullCode);
@@ -336,32 +336,30 @@ export default function FileShare() {
 
   return (
     <div className="tool-page">
-      <Link href="/" className="tool-page-back">← Back to Toolkit</Link>
+      <Link href="/tools/dinoshare" className="tool-page-back">← Back to DinoShare</Link>
       
       <div className="tool-page-header">
-        <h1>🔗 DinoShare</h1>
-        <p>Instantly upload and share files or text across any of your devices.</p>
+        <h1>📁 File Share</h1>
+        <p>Instantly upload and share files across any of your devices.</p>
       </div>
 
       <div className="share-wrapper">
-        {/* Main Tab Switcher */}
         <div className="share-tabs">
           <button 
             className={`share-tab-btn ${activeTab === 'send' ? 'active' : ''}`}
             onClick={() => { setActiveTab('send'); setErrorMessage(''); setSuccessMessage(''); }}
           >
-            📤 SEND
+            📤 SEND FILE
           </button>
           <button 
             className={`share-tab-btn ${activeTab === 'receive' ? 'active' : ''}`}
             onClick={() => { setActiveTab('receive'); setErrorMessage(''); setSuccessMessage(''); }}
           >
-            📥 RECEIVE
+            📥 RECEIVE FILE
           </button>
         </div>
 
         <div className="share-card">
-          {/* Error & Warning Displays */}
           {errorMessage && (
             <div className="retro-alert" style={{ marginBottom: 16 }}>
               <span>⚠️</span>
@@ -372,7 +370,7 @@ export default function FileShare() {
           {isDemoWarning && (
             <div className="retro-alert" style={{ marginBottom: 16, background: '#2b271b', borderColor: 'var(--pixel-yellow)', color: 'var(--pixel-yellow)' }}>
               <span>💡</span>
-              <div><strong>Demo Mode:</strong> Cloudflare R2 is not fully configured in your environment. Operations are using simulation defaults.</div>
+              <div><strong>Demo Mode:</strong> Live storage is not configured. Running in local simulation mode. (Enter code '9999' in the RECEIVE tab to test).</div>
             </div>
           )}
 
@@ -383,119 +381,72 @@ export default function FileShare() {
             </div>
           )}
 
-          {/* ==================================================================== */}
-          {/* TAB: SEND                                                            */}
-          {/* ==================================================================== */}
           {activeTab === 'send' && (
             <div className="share-panel">
               {!shareCode ? (
-                <>
-                  {/* Send Type Switcher */}
-                  <div className="sub-tabs">
-                    <button 
-                      className={`sub-tab-btn ${sendType === 'file' ? 'active' : ''}`}
-                      onClick={() => { setSendType('file'); setErrorMessage(''); }}
-                    >
-                      📁 FILE SHARE
-                    </button>
-                    <button 
-                      className={`sub-tab-btn ${sendType === 'text' ? 'active' : ''}`}
-                      onClick={() => { setSendType('text'); setErrorMessage(''); }}
-                    >
-                      ✏️ TEXT CLIPBOARD
-                    </button>
+                <div className="file-upload-container">
+                  <div 
+                    className={`upload-zone ${dragOver ? 'drag-over' : ''}`}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onClick={() => fileInputRef.current?.click()}
+                    style={{ cursor: 'pointer', minHeight: 180 }}
+                  >
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      onChange={handleFileChange} 
+                      style={{ display: 'none' }}
+                    />
+                    <div className="upload-zone-icon">☁️</div>
+                    <div className="upload-zone-text">
+                      Drag & drop any file here, or click to browse
+                    </div>
                   </div>
 
-                  {/* FILE UPLOAD PANEL */}
-                  {sendType === 'file' && (
-                    <div className="file-upload-container">
-                      <div 
-                        className={`upload-zone ${dragOver ? 'drag-over' : ''}`}
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
-                        onClick={() => fileInputRef.current?.click()}
-                        style={{ cursor: 'pointer', minHeight: 180 }}
-                      >
-                        <input 
-                          type="file" 
-                          ref={fileInputRef} 
-                          onChange={handleFileChange} 
-                          style={{ display: 'none' }}
-                        />
-                        <div className="upload-zone-icon">☁️</div>
-                        <div className="upload-zone-text">
-                          Drag & drop any file here, or click to browse
+                  {selectedFile && (
+                    <div className="upload-details">
+                      <div className="upload-file-info">
+                        <span>📄</span>
+                        <div>
+                          <div className="upload-file-name">{selectedFile.name}</div>
+                          <div className="upload-file-size">{formatBytes(selectedFile.size)}</div>
                         </div>
                       </div>
-
-                      {selectedFile && (
-                        <div className="upload-details">
-                          <div className="upload-file-info">
-                            <span>📄</span>
-                            <div>
-                              <div className="upload-file-name">{selectedFile.name}</div>
-                              <div className="upload-file-size">{formatBytes(selectedFile.size)}</div>
-                            </div>
-                          </div>
-                          <button 
-                            className="btn btn-ghost" 
-                            onClick={(e) => { e.stopPropagation(); setSelectedFile(null); }}
-                            style={{ padding: '6px 10px', fontSize: '0.65rem' }}
-                            disabled={isUploading}
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      )}
-
-                      {isUploading && (
-                        <div className="progress-container">
-                          <div className="progress-header">
-                            <span>Uploading file directly to R2...</span>
-                            <span>{uploadProgress}%</span>
-                          </div>
-                          <div className="progress-bar-bg">
-                            <div className="progress-bar-fill" style={{ width: `${uploadProgress}%` }}></div>
-                          </div>
-                        </div>
-                      )}
-
                       <button 
-                        className="btn btn-primary"
-                        onClick={handleFileUpload}
-                        disabled={!selectedFile || isUploading}
-                        style={{ padding: 12, background: 'var(--pixel-green, #4caf50)', color: '#fff', fontSize: '0.75rem' }}
+                        className="btn btn-ghost" 
+                        onClick={(e) => { e.stopPropagation(); setSelectedFile(null); }}
+                        style={{ padding: '6px 10px', fontSize: '0.65rem' }}
+                        disabled={isUploading}
                       >
-                        {isUploading ? 'UPLOADING...' : '📤 UPLOAD & GET CODE'}
+                        Remove
                       </button>
                     </div>
                   )}
 
-                  {/* TEXT CLIPBOARD PANEL */}
-                  {sendType === 'text' && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                      <div className="text-area-label">PASTE TEXT TO SHARE:</div>
-                      <textarea
-                        className="text-area-input"
-                        placeholder="Type or paste any text/link here..."
-                        value={clipboardText}
-                        onChange={(e) => setClipboardText(e.target.value)}
-                        disabled={isSavingText}
-                      />
-                      <button 
-                        className="btn btn-primary"
-                        onClick={handleTextSave}
-                        disabled={!clipboardText.trim() || isSavingText}
-                        style={{ padding: 12, background: 'var(--pixel-cyan, #00bcd4)', color: '#000', fontSize: '0.75rem' }}
-                      >
-                        {isSavingText ? 'SAVING...' : '📋 SHARE TEXT CLIPBOARD'}
-                      </button>
+                  {isUploading && (
+                    <div className="progress-container">
+                      <div className="progress-header">
+                        <span>Uploading file to storage...</span>
+                        <span>{uploadProgress}%</span>
+                      </div>
+                      <div className="progress-bar-bg">
+                        <div className="progress-bar-fill" style={{ width: `${uploadProgress}%` }}></div>
+                      </div>
                     </div>
                   )}
-                </>
+
+                  <button 
+                    className="btn btn-primary"
+                    onClick={handleFileUpload}
+                    disabled={!selectedFile || isUploading}
+                    style={{ padding: 12, background: 'var(--pixel-green, #4caf50)', color: '#fff', fontSize: '0.75rem' }}
+                  >
+                    {isUploading ? 'UPLOADING...' : '📤 UPLOAD'}
+                  </button>
+                </div>
               ) : (
-                /* SHARE DETAILS TICKET VIEW */
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <div className="ticket-card" style={{ width: '100%', maxWidth: 450 }}>
                     <div className="ticket-title">DINOSHARE TICKET</div>
@@ -534,21 +485,31 @@ export default function FileShare() {
                       </button>
                     </div>
 
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <button 
-                        className="btn btn-ghost" 
-                        onClick={copyCode}
-                        style={{ flex: 1, padding: 10, fontSize: '0.7rem' }}
-                      >
-                        {copiedCode ? '✓ CODE COPIED' : '📋 COPY CODE'}
-                      </button>
+                    <div style={{ display: 'flex', gap: 8, flexDirection: 'column' }}>
                       <button 
                         className="btn btn-primary" 
-                        onClick={resetShare}
-                        style={{ flex: 1, padding: 10, fontSize: '0.7rem', background: '#000', color: '#fff' }}
+                        onClick={handleDownloadDirectly}
+                        disabled={isRetrieving}
+                        style={{ padding: 10, fontSize: '0.75rem', background: 'var(--pixel-green, #4caf50)', color: '#fff' }}
                       >
-                        🔄 SHARE ANOTHER
+                        {isRetrieving ? 'DOWNLOADING...' : '📥 DOWNLOAD FILE'}
                       </button>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button 
+                          className="btn btn-ghost" 
+                          onClick={copyCode}
+                          style={{ flex: 1, padding: 10, fontSize: '0.7rem' }}
+                        >
+                          {copiedCode ? '✓ CODE COPIED' : '📋 COPY CODE'}
+                        </button>
+                        <button 
+                          className="btn btn-primary" 
+                          onClick={resetShare}
+                          style={{ flex: 1, padding: 10, fontSize: '0.7rem', background: '#000', color: '#fff' }}
+                        >
+                          🔄 SHARE ANOTHER
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -556,9 +517,6 @@ export default function FileShare() {
             </div>
           )}
 
-          {/* ==================================================================== */}
-          {/* TAB: RECEIVE                                                         */}
-          {/* ==================================================================== */}
           {activeTab === 'receive' && (
             <div className="share-panel">
               <div className="code-input-container">
@@ -599,52 +557,36 @@ export default function FileShare() {
                 </div>
               </div>
 
-              {/* RETRIEVED CONTENT PRESENTATION */}
               {retrievedItem && (
                 <div className="download-result">
                   <div className="download-result-header">
-                    {retrievedItem.type === 'file' ? '📂 FILE READY FOR DOWNLOAD' : '✏️ RETRIEVED TEXT CLIPBOARD'}
+                    📂 FILE READY FOR DOWNLOAD
                   </div>
 
-                  {retrievedItem.type === 'file' ? (
-                    <div className="download-file-card">
-                      <div className="download-file-icon">💾</div>
-                      <div className="download-file-meta">
-                        <div className="download-file-title">{retrievedItem.fileName}</div>
-                        <div className="download-file-specs">
-                          Size: {formatBytes(retrievedItem.fileSize)}
-                        </div>
+                  <div className="download-file-card">
+                    <div className="download-file-icon">💾</div>
+                    <div className="download-file-meta">
+                      <div className="download-file-title">{retrievedItem.fileName}</div>
+                      <div className="download-file-specs">
+                        Size: {formatBytes(retrievedItem.fileSize)}
                       </div>
-                      <a 
-                        href={retrievedItem.downloadUrl}
-                        download={retrievedItem.fileName}
-                        className="btn btn-primary"
-                        style={{ 
-                          padding: '10px 14px', 
-                          background: 'var(--pixel-green, #4caf50)', 
-                          color: '#fff', 
-                          fontSize: '0.7rem',
-                          textDecoration: 'none',
-                          display: 'inline-block'
-                        }}
-                      >
-                        DOWNLOAD
-                      </a>
                     </div>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                      <div className="clipboard-result-box">
-                        {retrievedItem.text}
-                      </div>
-                      <button 
-                        className="btn btn-primary" 
-                        onClick={copyRetrievedText}
-                        style={{ padding: 10, background: 'var(--pixel-cyan, #00bcd4)', color: '#000', fontSize: '0.7rem' }}
-                      >
-                        {copiedRetrievedText ? '✓ COPIED TO CLIPBOARD' : '📋 COPY TO CLIPBOARD'}
-                      </button>
-                    </div>
-                  )}
+                    <a 
+                      href={retrievedItem.downloadUrl}
+                      download={retrievedItem.fileName}
+                      className="btn btn-primary"
+                      style={{ 
+                        padding: '10px 14px', 
+                        background: 'var(--pixel-green, #4caf50)', 
+                        color: '#fff', 
+                        fontSize: '0.7rem',
+                        textDecoration: 'none',
+                        display: 'inline-block'
+                      }}
+                    >
+                      DOWNLOAD
+                    </a>
+                  </div>
                 </div>
               )}
             </div>

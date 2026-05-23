@@ -52,9 +52,11 @@ export default function DarkModeToggle() {
   useEffect(() => {
     // Check local storage or system preference on mount
     const savedTheme = localStorage.getItem('dino-theme');
-    if (savedTheme === 'dark') {
-      setIsDark(true);
-      document.documentElement.setAttribute('data-theme', 'dark');
+    if (savedTheme) {
+      setIsDark(savedTheme === 'dark');
+    } else {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setIsDark(prefersDark);
     }
   }, []);
 

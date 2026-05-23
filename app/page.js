@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from 'react';
 import ToolCard from '@/components/ToolCard';
 import Chatbot from '@/components/Chatbot';
-import DarkModeToggle from '@/components/DarkModeToggle';
 import PixelIcon from '@/components/PixelIcon';
 import { useUser, SignInButton, SignUpButton, SignOutButton } from '@clerk/nextjs';
 
@@ -20,7 +19,7 @@ const allTools = [
   { title: 'File converter', description: 'Convert files, documents, and media formats instantly.', icon: <PixelIcon type="convert" size={32} />, href: '/tools/file-converter' },
   { title: 'NitinMusic',     description: 'Ad-free music streaming and trending charts.',           icon: <PixelIcon type="music"   size={32} />, href: '/tools/music-player' },
   { title: 'AI Chatbot',     description: 'Chat with an intelligent AI assistant.',                 icon: <PixelIcon type="bot"     size={32} />, href: '/tools/chatbot' },
-  { title: 'DinoShare',      description: 'Upload & share files across devices instantly.',         icon: <PixelIcon type="share"   size={32} />, href: '/tools/file-share' },
+  { title: 'DinoShare',      description: 'Upload & share files across devices instantly.',         icon: <PixelIcon type="share"   size={32} />, href: '/tools/dinoshare' },
 ];
 
 const subTools = [
@@ -30,6 +29,8 @@ const subTools = [
   { title: 'Image to PDF',        description: 'Convert and compile multiple images into a PDF.',   icon: <PixelIcon type="photos"   size={32} />, href: '/tools/pdf/image-to-pdf' },
   { title: 'PDF Page Remover',    description: 'Visually select and delete PDF pages.',             icon: <PixelIcon type="scissors" size={32} />, href: '/tools/pdf/page-remover' },
   { title: 'PDF Merger',          description: 'Combine multiple PDF files into one.',              icon: <PixelIcon type="link"     size={32} />, href: '/tools/pdf/pdf-merger' },
+  { title: 'File Share',          description: 'Upload and share files across devices instantly.',   icon: <PixelIcon type="share"    size={32} />, href: '/tools/dinoshare/file' },
+  { title: 'Text Clipboard',      description: 'Instantly share text clipboards across devices.',   icon: <PixelIcon type="notes"    size={32} />, href: '/tools/dinoshare/text' },
 ];
 
 
@@ -258,7 +259,6 @@ export default function Home() {
       </footer>
 
       <Chatbot />
-      <DarkModeToggle />
 
       {/* Floating Auth Trigger Button */}
       {isLoaded && (

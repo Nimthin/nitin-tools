@@ -61,9 +61,12 @@ export async function POST(req) {
       });
     } else {
       // Generate a signed download URL valid for 10 minutes (600 seconds)
+      // Force the browser to download the file directly with its original filename
       const { data, error: urlError } = await supabase.storage
         .from(STORAGE_BUCKET)
-        .createSignedUrl(objectPath, 600);
+        .createSignedUrl(objectPath, 600, {
+          download: fileName,
+        });
 
       if (urlError) throw urlError;
 

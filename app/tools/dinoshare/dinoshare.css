@@ -27,28 +27,31 @@
   border: 3px solid var(--pixel-border, #000);
 }
 
-.share-tab-btn {
+.tool-page button.share-tab-btn:not(.dark-mode-toggle-minimal):not(.yt-trending-play-overlay):not(.yt-trending-dl-badge):not(.yt-carousel-btn):not(.yt-input-clear):not(.yt-paste-btn) {
   flex: 1;
   padding: 12px;
   font-family: var(--font-pixel, 'Press Start 2P', monospace);
   font-size: 0.75rem;
   text-align: center;
   cursor: pointer;
+  background: #d2d2d2 !important;
+  color: #333333 !important;
   border: none;
-  background: transparent;
-  color: #888;
+  box-shadow: none !important;
+  text-shadow: none !important;
   transition: all 0.1s ease;
 }
 
-.share-tab-btn:hover {
-  color: #fff;
-  background: #222;
+.tool-page button.share-tab-btn:not(.dark-mode-toggle-minimal):not(.yt-trending-play-overlay):not(.yt-trending-dl-badge):not(.yt-carousel-btn):not(.yt-input-clear):not(.yt-paste-btn):hover {
+  background: #e2e2e2 !important;
+  color: #000000 !important;
 }
 
-.share-tab-btn.active {
-  background: var(--pixel-yellow, #ffeb3b);
-  color: #000;
-  box-shadow: inset -4px -4px 0px #c2b323;
+.tool-page button.share-tab-btn.active:not(.dark-mode-toggle-minimal):not(.yt-trending-play-overlay):not(.yt-trending-dl-badge):not(.yt-carousel-btn):not(.yt-input-clear):not(.yt-paste-btn) {
+  background: var(--pixel-yellow, #ffeb3b) !important;
+  color: #000000 !important;
+  box-shadow: inset -4px -4px 0px #c2b323 !important;
+  text-shadow: none !important;
 }
 
 /* Inner Panels */
@@ -71,26 +74,29 @@
   padding-bottom: 12px;
 }
 
-.sub-tab-btn {
+.tool-page button.sub-tab-btn:not(.dark-mode-toggle-minimal):not(.yt-trending-play-overlay):not(.yt-trending-dl-badge):not(.yt-carousel-btn):not(.yt-input-clear):not(.yt-paste-btn) {
   padding: 8px 12px;
   font-family: var(--font-pixel, 'Press Start 2P', monospace);
   font-size: 0.65rem;
-  background: #222;
-  border: 2px solid var(--pixel-border, #000);
-  color: #aaa;
+  background: #e0e0e0 !important;
+  border: 2px solid var(--pixel-border, #000) !important;
+  box-shadow: 2px 2px 0px #000000 !important;
+  color: #333333 !important;
+  text-shadow: none !important;
   cursor: pointer;
   transition: all 0.1s ease;
 }
 
-.sub-tab-btn:hover {
-  background: #333;
-  color: #fff;
+.tool-page button.sub-tab-btn:not(.dark-mode-toggle-minimal):not(.yt-trending-play-overlay):not(.yt-trending-dl-badge):not(.yt-carousel-btn):not(.yt-input-clear):not(.yt-paste-btn):hover {
+  background: #f0f0f0 !important;
+  color: #000000 !important;
 }
 
-.sub-tab-btn.active {
-  background: var(--pixel-cyan, #00bcd4);
-  color: #000;
-  box-shadow: 2px 2px 0px #000;
+.tool-page button.sub-tab-btn.active:not(.dark-mode-toggle-minimal):not(.yt-trending-play-overlay):not(.yt-trending-dl-badge):not(.yt-carousel-btn):not(.yt-input-clear):not(.yt-paste-btn) {
+  background: var(--pixel-cyan, #00bcd4) !important;
+  color: #000000 !important;
+  box-shadow: 2px 2px 0px #000000 !important;
+  text-shadow: none !important;
 }
 
 /* File Upload Zone customization */
