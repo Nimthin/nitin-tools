@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { PDFDocument } from 'pdf-lib';
+import './compress.css';
 
 /* ==========================================================================
    PDF Compress — production version
@@ -402,84 +403,44 @@ export default function CompressPdf() {
           <h1>🗜️ Compress PDF</h1>
         </div>
 
-        <div
-          className="result-container"
-          style={{
-            position: 'relative', textAlign: 'center', padding: '60px 20px',
-            background: '#2d1b4e', border: '4px solid #ff007f',
-            boxShadow: '0 0 30px rgba(255, 0, 127, 0.4), inset 0 0 20px rgba(0,0,0,0.5)',
-            marginTop: '20px',
-          }}
-        >
+        <div className="result-container compress-card success-card">
           <FairyLights />
-          <div style={{ fontSize: '5rem', marginBottom: '20px', filter: 'drop-shadow(4px 4px 0px #000)' }}>
+          <div style={{ fontSize: '5rem', marginBottom: '20px' }}>
             {result.biggerThanOriginal ? '🤔' : '🎉'}
           </div>
-          <h2 style={{
-            fontFamily: 'var(--font-pixel)',
-            color: result.biggerThanOriginal ? '#ff9800' : '#ffcc00',
-            marginBottom: '20px', fontSize: '2rem', textShadow: '4px 4px 0px #000',
-          }}>
+          <h2 className={`success-card-title ${result.biggerThanOriginal ? 'no-savings' : 'success'}`}>
             {result.biggerThanOriginal ? 'NO SAVINGS THIS TIME' : 'COMPRESSION DONE!'}
           </h2>
 
           {result.biggerThanOriginal && (
-            <div style={{
-              maxWidth: '500px', margin: '0 auto 20px',
-              padding: '12px', background: 'rgba(255,152,0,0.15)',
-              border: '2px dashed #ff9800', color: '#fff', fontSize: '0.9rem',
-            }}>
+            <div className="success-notice no-savings">
               Your PDF is already well-optimized. Try a stronger preset, or keep the original.
             </div>
           )}
 
-          {result.lostFeatures && !result.biggerThanOriginal && (
-            <div style={{
-              maxWidth: '500px', margin: '0 auto 20px',
-              padding: '12px', background: 'rgba(0,188,212,0.12)',
-              border: '2px dashed var(--pixel-cyan)', color: '#fff', fontSize: '0.85rem',
-            }}>
-              <strong>Heads up:</strong> rasterized pages lose selectable text, hyperlinks,
-              and form fields. Use the <em>Lossless</em> preset if you need them preserved.
-            </div>
-          )}
 
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', marginBottom: '30px' }}>
-            <div style={{ background: '#2d1b4e', padding: '15px 30px', border: '2px dashed var(--pixel-cyan)' }}>
-              <div style={{ color: '#fff', fontSize: '0.9rem', opacity: 0.8, marginBottom: '5px' }}>ORIGINAL</div>
-              <div style={{
-                color: '#ff3b30', fontSize: '1.4rem',
-                textDecoration: result.biggerThanOriginal ? 'none' : 'line-through',
-              }}>
+          <div className="size-comparison-container">
+            <div className="size-box original-size">
+              <div className="size-box-title">ORIGINAL</div>
+              <div className="size-box-value" style={{ textDecoration: result.biggerThanOriginal ? 'none' : 'line-through' }}>
                 {formatFileSize(originalSize)}
               </div>
             </div>
-            <div style={{ color: '#ffcc00', fontSize: '1.5rem' }}>↓</div>
-            <div style={{
-              background: '#2d1b4e', padding: '15px 30px',
-              border: `3px solid ${result.biggerThanOriginal ? '#ff9800' : 'var(--pixel-green)'}`,
-              boxShadow: `0 0 15px ${result.biggerThanOriginal ? 'rgba(255,152,0,0.4)' : 'rgba(52,199,89,0.4)'}`,
-            }}>
-              <div style={{ color: '#fff', fontSize: '0.9rem', opacity: 0.8, marginBottom: '5px' }}>NEW SIZE</div>
-              <div style={{
-                color: result.biggerThanOriginal ? '#ff9800' : 'var(--pixel-green)',
-                fontSize: '1.8rem', fontWeight: 'bold',
-              }}>
+            
+            <div className="size-arrow">↓</div>
+            
+            <div className={`size-box new-size ${result.biggerThanOriginal ? 'larger' : ''}`}>
+              <div className="size-box-title">NEW SIZE</div>
+              <div className="size-box-value">
                 {formatFileSize(newSize)}
               </div>
               {savedPct > 0 && (
-                <div style={{
-                  color: '#ffcc00', fontSize: '0.8rem', marginTop: '5px',
-                  fontFamily: 'var(--font-pixel)',
-                }}>
+                <div className="savings-label">
                   SAVED {savedPct.toFixed(1)}%
                 </div>
               )}
               {savedPct < 0 && (
-                <div style={{
-                  color: '#ff9800', fontSize: '0.8rem', marginTop: '5px',
-                  fontFamily: 'var(--font-pixel)',
-                }}>
+                <div className="savings-label larger">
                   +{Math.abs(savedPct).toFixed(1)}% LARGER
                 </div>
               )}
@@ -493,7 +454,7 @@ export default function CompressPdf() {
             <button
               className="btn btn-primary"
               onClick={handleDownload}
-              style={{ padding: '12px 24px', fontSize: '1rem', background: 'var(--pixel-green)' }}
+              style={{ padding: '12px 24px', fontSize: '1rem' }}
             >
               ⬇️ Download {result.biggerThanOriginal ? 'Anyway' : 'PDF'}
             </button>
@@ -511,10 +472,7 @@ export default function CompressPdf() {
         <p>Shrink your PDFs in the browser. Nothing leaves your computer.</p>
       </div>
 
-      <div
-        className="result-container"
-        style={{ padding: '20px', background: 'var(--pixel-bg-card)', border: '3px solid var(--pixel-border)' }}
-      >
+      <div className="result-container compress-card">
         {error && <div className="error-message">⚠️ {error}</div>}
 
         {!file ? (
@@ -529,90 +487,65 @@ export default function CompressPdf() {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', padding: '20px' }}>
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: '10px',
-              fontSize: '1.1rem', color: 'var(--pixel-cyan)',
-            }}>
-              <span>📄</span>
-              <strong>{file.name}</strong>
-              <span style={{ color: '#aaa', fontSize: '0.9rem' }}>({formatFileSize(file.size)})</span>
+            
+            <div className="compress-file-details">
+              <span className="file-icon">📄</span>
+              <div className="file-meta">
+                <span className="file-name">{file.name}</span>
+                <span className="file-size">({formatFileSize(file.size)})</span>
+              </div>
             </div>
 
             {/* Preset cards */}
-            <div style={{
-              width: '100%', maxWidth: '700px',
-              display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px',
-            }}>
+            <div className="preset-grid">
               {Object.values(PRESETS).map((p) => {
                 const active = presetId === p.id;
                 return (
-                  <button
+                  <div
                     key={p.id}
-                    type="button"
-                    disabled={isProcessing}
-                    onClick={() => setPresetId(p.id)}
-                    className={`btn ${active ? 'btn-selected' : 'btn-ghost'}`}
-                    style={{
-                      padding: '14px', textAlign: 'left', display: 'flex',
-                      flexDirection: 'column', gap: '6px', alignItems: 'flex-start',
-                      cursor: isProcessing ? 'not-allowed' : 'pointer',
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => !isProcessing && setPresetId(p.id)}
+                    onKeyDown={(e) => {
+                      if (!isProcessing && (e.key === 'Enter' || e.key === ' ')) {
+                        setPresetId(p.id);
+                      }
                     }}
+                    className={`preset-card ${active ? 'active' : ''} ${isProcessing ? 'disabled' : ''}`}
                   >
-                    <div style={{
-                      fontFamily: 'var(--font-pixel)', fontSize: '0.85rem',
-                      color: active ? '#ffcc00' : '#fff',
-                    }}>
+                    <div className="preset-label">
                       {p.label}
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: '#bbb', lineHeight: 1.4 }}>
+                    <div className="preset-blurb">
                       {p.blurb}
                     </div>
-                    <div style={{
-                      fontFamily: 'var(--font-pixel)', fontSize: '0.65rem',
-                      color: 'var(--pixel-green)',
-                    }}>
+                    <div className="preset-savings">
                       ~{p.savings} smaller
                     </div>
-                  </button>
+                  </div>
                 );
               })}
             </div>
 
             {/* Grayscale toggle (rasterize only) */}
             {preset.rasterize && (
-              <label
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '10px',
-                  background: '#2d1b4e', padding: '10px 18px',
-                  border: '2px solid var(--pixel-border)', cursor: 'pointer',
-                }}
-              >
+              <label className="grayscale-toggle-label">
                 <input
                   type="checkbox"
                   checked={grayscale}
                   disabled={isProcessing}
                   onChange={(e) => setGrayscale(e.target.checked)}
-                  style={{ width: 18, height: 18, cursor: 'pointer' }}
+                  className="grayscale-checkbox"
                 />
-                <span style={{ fontFamily: 'var(--font-pixel)', fontSize: '0.75rem', color: '#fff' }}>
+                <span className="grayscale-text-label">
                   GRAYSCALE
                 </span>
-                <span style={{ fontSize: '0.75rem', color: '#bbb' }}>
+                <span className="grayscale-hint">
                   Extra 20–40% savings on color documents
                 </span>
               </label>
             )}
 
-            {/* Trade-off notice for rasterize */}
-            {preset.rasterize && (
-              <div style={{
-                maxWidth: '600px', textAlign: 'center', fontSize: '0.8rem',
-                color: '#bbb', lineHeight: 1.5,
-              }}>
-                ⚠️ Rasterized presets render each page as an image. Selectable text,
-                hyperlinks, and form fields will not be preserved. Pick <strong>Lossless</strong> to keep them.
-              </div>
-            )}
 
             {/* Progress */}
             {isProcessing && progress && (
@@ -661,23 +594,14 @@ function ProgressBar({ progress }) {
     'Working…';
 
   return (
-    <div style={{ width: '100%', maxWidth: '600px' }}>
-      <div style={{
-        fontFamily: 'var(--font-pixel)', fontSize: '0.7rem',
-        color: '#fff', marginBottom: '6px', textAlign: 'center',
-      }}>
+    <div className="compress-progress-container">
+      <div className="progress-label">
         {phaseLabel} {phase === 'render' && total > 1 ? `(${pct}%)` : ''}
       </div>
-      <div style={{
-        width: '100%', height: '14px', background: '#1a1a1a',
-        border: '2px solid var(--pixel-border)', overflow: 'hidden',
-      }}>
+      <div className="progress-bar-track">
         <div
-          style={{
-            width: `${pct}%`, height: '100%',
-            background: 'linear-gradient(90deg, var(--pixel-green) 0%, var(--pixel-cyan) 100%)',
-            transition: 'width 0.2s ease',
-          }}
+          className="progress-bar-fill"
+          style={{ width: `${pct}%` }}
         />
       </div>
     </div>

@@ -1,0 +1,407 @@
+/* ==========================================================================
+   🗜️ PDF COMPRESS — Tool-specific styles
+   --------------------------------------------------------------------------
+   This stylesheet overrides the aggressive global retro-dark theme to
+   provide a premium, high-contrast, light-retro cream/beige aesthetic,
+   and prevents pixel-art font collisions/overflow in the preset cards.
+   ========================================================================== */
+
+/* Main container overrides */
+.tool-page .compress-card {
+  background-color: #faf8f2 !important;
+  border: 4px solid #1a1a1a !important;
+  box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.15) !important;
+  margin-top: 20px;
+  padding: 30px 20px;
+  color: #1a1a1a !important;
+}
+
+/* Success card styling */
+.tool-page .compress-card.success-card {
+  position: relative;
+  text-align: center;
+  padding: 50px 20px;
+  border-color: #4caf50 !important;
+  box-shadow: 6px 6px 0px rgba(76, 175, 80, 0.2) !important;
+}
+
+/* Force dark text and remove shadows inside the cream container */
+.compress-card div:not(.fairy-light):not(.progress-bar-fill),
+.compress-card p,
+.compress-card span,
+.compress-card strong,
+.compress-card label {
+  color: #1a1a1a !important;
+  text-shadow: none !important;
+}
+
+/* Upload zone override when inside the compress card */
+.compress-card .upload-zone {
+  background: #ffffff !important;
+  border: 4px dashed #1a1a1a !important;
+  box-shadow: inset 4px 4px 0px rgba(0, 0, 0, 0.05) !important;
+  max-width: 600px !important;
+  margin: 0 auto 10px auto !important;
+}
+
+.compress-card .upload-zone:hover {
+  background: #f7f4ea !important;
+  border-color: #ff9800 !important;
+  box-shadow: inset 4px 4px 0px rgba(0, 0, 0, 0.08), 0 0 20px rgba(255, 152, 0, 0.15) !important;
+}
+
+.compress-card .upload-zone-icon {
+  filter: none !important;
+  color: #ff9800 !important;
+  text-shadow: none !important;
+}
+
+.compress-card .upload-zone-text {
+  color: #1a1a1a !important;
+  text-shadow: none !important;
+}
+
+.compress-card .upload-zone-hint {
+  color: #666666 !important;
+  text-shadow: none !important;
+}
+
+/* File detail bar */
+.compress-file-details {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #ffffff;
+  border: 3px solid #1a1a1a;
+  padding: 14px 20px;
+  width: 100%;
+  max-width: 700px;
+  box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+}
+
+.compress-file-details .file-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.compress-file-details .file-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+  text-align: left;
+}
+
+.compress-file-details .file-name {
+  font-family: var(--font-body) !important;
+  font-size: 0.9rem !important;
+  font-weight: 600;
+  color: #1a1a1a !important;
+  word-break: break-all;
+}
+
+.compress-file-details .file-size {
+  font-family: var(--font-pixel) !important;
+  font-size: 0.65rem !important;
+  color: #666666 !important;
+}
+
+/* Preset Cards Grid */
+.preset-grid {
+  width: 100%;
+  max-width: 700px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin: 15px 0;
+}
+
+/* Single Preset Card */
+.preset-card {
+  background-color: #ffffff !important;
+  border: 3px solid #1a1a1a !important;
+  box-shadow: 3px 3px 0px #1a1a1a !important;
+  padding: 16px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+.preset-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0px #1a1a1a !important;
+  background-color: #fdfcf7 !important;
+}
+
+.preset-card.active {
+  background-color: #fffdf0 !important;
+  border-color: #ff9800 !important;
+  box-shadow: inset 3px 3px 0px rgba(0, 0, 0, 0.03), 4px 4px 0px #ff9800 !important;
+}
+
+.preset-card.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: 3px 3px 0px #1a1a1a !important;
+  background-color: #f5f5f5 !important;
+}
+
+.preset-card .preset-label {
+  font-family: var(--font-pixel) !important;
+  font-size: 0.75rem !important;
+  color: #1a1a1a !important;
+  font-weight: bold;
+}
+
+.preset-card.active .preset-label {
+  color: #e68900 !important;
+}
+
+.preset-card .preset-blurb {
+  font-family: var(--font-body) !important;
+  font-size: 0.75rem !important;
+  color: #555555 !important;
+  line-height: 1.4 !important;
+  text-transform: none !important;
+}
+
+.preset-card .preset-savings {
+  font-family: var(--font-pixel) !important;
+  font-size: 0.65rem !important;
+  color: #388e3c !important;
+  margin-top: auto;
+  font-weight: bold;
+}
+
+/* Grayscale toggle row */
+.grayscale-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #ffffff;
+  padding: 12px 18px;
+  border: 3px solid #1a1a1a;
+  box-shadow: 3px 3px 0px #1a1a1a;
+  cursor: pointer;
+  width: 100%;
+  max-width: 700px;
+  box-sizing: border-box;
+}
+
+.grayscale-checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #ff9800;
+}
+
+.grayscale-text-label {
+  font-family: var(--font-pixel) !important;
+  font-size: 0.7rem !important;
+  color: #1a1a1a !important;
+  font-weight: bold;
+}
+
+.grayscale-hint {
+  font-family: var(--font-body) !important;
+  font-size: 0.75rem !important;
+  color: #666666 !important;
+}
+
+/* Warnings and Notices */
+.compress-card .tradeoff-notice {
+  max-width: 700px;
+  text-align: center;
+  font-family: var(--font-body) !important;
+  font-size: 0.8rem !important;
+  color: #795548 !important;
+  line-height: 1.5;
+  background: #fff8e1 !important;
+  border: 2px dashed #ffb300 !important;
+  padding: 12px 16px;
+  box-sizing: border-box;
+}
+
+/* Success details size boxes */
+.size-comparison-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 30px;
+  width: 100%;
+}
+
+.size-box {
+  background: #ffffff !important;
+  padding: 15px 30px;
+  border: 3px solid #1a1a1a !important;
+  box-shadow: 4px 4px 0px rgba(0,0,0,0.1);
+  min-width: 200px;
+  box-sizing: border-box;
+}
+
+.size-box.original-size {
+  border-style: dashed !important;
+  border-color: #888888 !important;
+}
+
+.size-box.new-size {
+  border-color: #4caf50 !important;
+  box-shadow: 4px 4px 0px rgba(76, 175, 80, 0.2);
+}
+
+.size-box.new-size.larger {
+  border-color: #ff9800 !important;
+  box-shadow: 4px 4px 0px rgba(255, 152, 0, 0.2);
+}
+
+.size-box-title {
+  font-family: var(--font-pixel) !important;
+  font-size: 0.7rem !important;
+  color: #666666 !important;
+  margin-bottom: 6px;
+}
+
+.size-box-value {
+  font-size: 1.5rem !important;
+  font-weight: bold;
+}
+
+.size-box.original-size .size-box-value {
+  color: #f44336 !important;
+}
+
+.size-box.new-size .size-box-value {
+  color: #4caf50 !important;
+}
+
+.size-box.new-size.larger .size-box-value {
+  color: #ff9800 !important;
+}
+
+.savings-label {
+  font-family: var(--font-pixel) !important;
+  font-size: 0.8rem !important;
+  color: #388e3c !important;
+  margin-top: 8px;
+  font-weight: bold;
+}
+
+.savings-label.larger {
+  color: #e68900 !important;
+}
+
+.size-arrow {
+  font-size: 1.8rem;
+  color: #1a1a1a;
+  line-height: 1;
+}
+
+/* Success warnings / headers overrides */
+.success-card-title {
+  font-family: var(--font-pixel) !important;
+  margin-bottom: 20px;
+  font-size: 1.8rem !important;
+  text-shadow: none !important;
+}
+
+.success-card-title.success {
+  color: #2e7d32 !important;
+}
+
+.success-card-title.no-savings {
+  color: #c62828 !important;
+}
+
+/* Custom progress bar styles */
+.compress-progress-container {
+  width: 100%;
+  max-width: 600px;
+  margin: 15px 0;
+  box-sizing: border-box;
+}
+
+.compress-progress-container .progress-label {
+  font-family: var(--font-pixel) !important;
+  font-size: 0.7rem !important;
+  color: #1a1a1a !important;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.compress-progress-container .progress-bar-track {
+  width: 100%;
+  height: 16px;
+  background: #ffffff !important;
+  border: 3px solid #1a1a1a !important;
+  box-shadow: inset 2px 2px 0px rgba(0,0,0,0.05) !important;
+  overflow: hidden;
+  position: relative;
+}
+
+.compress-progress-container .progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4caf50 0%, #00bcd4 100%) !important;
+  transition: width 0.2s ease;
+}
+
+/* Override the success page notifications */
+.success-notice {
+  max-width: 600px;
+  margin: 0 auto 20px;
+  padding: 12px;
+  font-family: var(--font-body) !important;
+  font-size: 0.85rem !important;
+  background: #e0f7fa !important;
+  border: 2px dashed #00bcd4 !important;
+  box-sizing: border-box;
+}
+
+.success-notice.no-savings {
+  background: #ffe0b2 !important;
+  border-color: #ff9800 !important;
+}
+
+/* Buttons style overrides inside cream card */
+.compress-card .btn-primary {
+  background-color: #4caf50 !important;
+  color: #ffffff !important;
+  border-color: #388e3c !important;
+  text-shadow: 1px 1px 0px #1b5e20, -1px -1px 0px #1b5e20 !important;
+}
+
+.compress-card .btn-primary:hover {
+  background-color: #66bb6a !important;
+}
+
+.compress-card .btn-ghost {
+  background-color: #e2dfd5 !important;
+  color: #1a1a1a !important;
+  border-color: #1a1a1a !important;
+  text-shadow: none !important;
+}
+
+.compress-card .btn-ghost:hover {
+  background-color: #ebeae4 !important;
+}
+
+.compress-card .btn-danger {
+  background-color: #f44336 !important;
+  color: #ffffff !important;
+  border-color: #d32f2f !important;
+  text-shadow: 1px 1px 0px #b71c1c, -1px -1px 0px #b71c1c !important;
+}
+
+.compress-card .btn-danger:hover {
+  background-color: #ff5252 !important;
+}
