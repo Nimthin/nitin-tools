@@ -322,7 +322,7 @@ export default function VideoToGif() {
   /* ====================================================================== */
   return (
     <div className="tool-page">
-      <Link href="/" className="tool-page-back">← Back to Toolkit</Link>
+      <Link href="/tools/video" className="tool-page-back">← Back to Toolkit</Link>
       <div className="tool-page-header">
         <h1>🎞️ Video → GIF</h1>
         <p>Trim a clip from any video and export as an animated GIF — all in your browser.</p>

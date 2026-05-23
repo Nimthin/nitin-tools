@@ -14,10 +14,9 @@ const allTools = [
   { title: 'Image Toolkit',  description: 'Remove backgrounds and extract text with local AI.', icon: <PixelIcon type="image"   size={32} />, href: '/tools/image' },
   { title: 'PDF Toolkit',    description: 'Convert images to PDF and manage your pages securely.', icon: <PixelIcon type="pdf"    size={32} />, href: '/tools/pdf' },
   { title: 'YouTube to MP3', description: 'Download high-quality audio from any YouTube video.',   icon: <PixelIcon type="youtube" size={32} />, href: '/tools/youtube-audio' },
-  { title: 'Video to GIF',   description: 'Trim video clips and export as GIF client-side.',        icon: <PixelIcon type="video"   size={32} />, href: '/tools/Video/video-to-gif' },
+  { title: 'Video Toolkit',  description: 'Trim, edit, and export video clips client-side.',        icon: <PixelIcon type="video"   size={32} />, href: '/tools/video' },
   { title: 'QR Generator',   description: 'Generate customizable QR codes client-side.',            icon: <PixelIcon type="qr"      size={32} />, href: '/tools/qr-generator' },
   { title: 'File converter', description: 'Convert files, documents, and media formats instantly.', icon: <PixelIcon type="convert" size={32} />, href: '/tools/file-converter' },
-  { title: 'NitinMusic',     description: 'Ad-free music streaming and trending charts.',           icon: <PixelIcon type="music"   size={32} />, href: '/tools/music-player' },
   { title: 'AI Chatbot',     description: 'Chat with an intelligent AI assistant.',                 icon: <PixelIcon type="bot"     size={32} />, href: '/tools/chatbot' },
   { title: 'DinoShare',      description: 'Upload & share files across devices instantly.',         icon: <PixelIcon type="share"   size={32} />, href: '/tools/dinoshare' },
 ];
