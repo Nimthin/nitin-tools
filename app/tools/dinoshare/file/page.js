@@ -7,6 +7,7 @@ import '../dinoshare.css';
 
 export default function FileShare() {
   const [activeTab, setActiveTab] = useState('send'); // 'send' or 'receive'
+  const [isDirectLink, setIsDirectLink] = useState(false);
   
   // File upload states
   const [selectedFile, setSelectedFile] = useState(null);
@@ -37,6 +38,7 @@ export default function FileShare() {
     const params = new URLSearchParams(window.location.search);
     const queryCode = params.get('code');
     if (queryCode && queryCode.match(/^\d{4}$/)) {
+      setIsDirectLink(true);
       setActiveTab('receive');
       setCodeDigits(queryCode.split(''));
       handleRetrieve(queryCode);
@@ -224,7 +226,18 @@ export default function FileShare() {
       }
 
       if (data.type === 'text') {
-        throw new Error("This code is for a Text Clipboard. Please retrieve it using the Text Clipboard tool!");
+        setErrorMessage(
+          <span>
+            This code is for a Text Clipboard. Please{' '}
+            <Link 
+              href={`/tools/dinoshare/text?code=${targetCode}`}
+              style={{ color: 'var(--pixel-yellow)', textDecoration: 'underline', fontWeight: 'bold' }}
+            >
+              click here to view it in the Text Clipboard tool!
+            </Link>
+          </span>
+        );
+        return;
       }
 
       setRetrievedItem(data);
@@ -344,254 +357,335 @@ export default function FileShare() {
       </div>
 
       <div className="share-wrapper">
-        <div className="share-tabs">
-          <button 
-            className={`share-tab-btn ${activeTab === 'send' ? 'active' : ''}`}
-            onClick={() => { setActiveTab('send'); setErrorMessage(''); setSuccessMessage(''); }}
-          >
-            📤 SEND FILE
-          </button>
-          <button 
-            className={`share-tab-btn ${activeTab === 'receive' ? 'active' : ''}`}
-            onClick={() => { setActiveTab('receive'); setErrorMessage(''); setSuccessMessage(''); }}
-          >
-            📥 RECEIVE FILE
-          </button>
-        </div>
+        {isDirectLink ? (
+          <div className="share-card">
+            {isRetrieving && (
+              <div className="loading-container">
+                <div className="spinner"></div>
+                <div className="loading-text">Retrieving shared file...</div>
+              </div>
+            )}
 
-        <div className="share-card">
-          {errorMessage && (
-            <div className="retro-alert" style={{ marginBottom: 16 }}>
-              <span>⚠️</span>
-              <div>{errorMessage}</div>
-            </div>
-          )}
+            {errorMessage && (
+              <div className="retro-alert" style={{ marginBottom: 16 }}>
+                <span>{errorMessage}</span>
+              </div>
+            )}
 
-          {isDemoWarning && (
-            <div className="retro-alert" style={{ marginBottom: 16, background: '#2b271b', borderColor: 'var(--pixel-yellow)', color: 'var(--pixel-yellow)' }}>
-              <span>💡</span>
-              <div><strong>Demo Mode:</strong> Live storage is not configured. Running in local simulation mode. (Enter code '9999' in the RECEIVE tab to test).</div>
-            </div>
-          )}
+            {isDemoWarning && (
+              <div className="retro-alert" style={{ marginBottom: 16, background: '#2b271b', borderColor: 'var(--pixel-yellow)', color: 'var(--pixel-yellow)' }}>
+                <span>💡</span>
+                <div><strong>Demo Mode:</strong> Live storage is not configured. Running in local simulation mode.</div>
+              </div>
+            )}
 
-          {successMessage && (
-            <div className="retro-success" style={{ marginBottom: 16 }}>
-              <span>✓</span>
-              <div>{successMessage}</div>
-            </div>
-          )}
+            {successMessage && (
+              <div className="retro-success" style={{ marginBottom: 16 }}>
+                <span>✓</span>
+                <div>{successMessage}</div>
+              </div>
+            )}
 
-          {activeTab === 'send' && (
-            <div className="share-panel">
-              {!shareCode ? (
-                <div className="file-upload-container">
-                  <div 
-                    className={`upload-zone ${dragOver ? 'drag-over' : ''}`}
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
-                    onClick={() => fileInputRef.current?.click()}
-                    style={{ cursor: 'pointer', minHeight: 180 }}
-                  >
-                    <input 
-                      type="file" 
-                      ref={fileInputRef} 
-                      onChange={handleFileChange} 
-                      style={{ display: 'none' }}
-                    />
-                    <div className="upload-zone-icon">☁️</div>
-                    <div className="upload-zone-text">
-                      Drag & drop any file here, or click to browse
+            {retrievedItem && (
+              <div className="download-result" style={{ display: 'block', margin: '10px 0' }}>
+                <div className="download-result-header">
+                  📂 FILE SHARED WITH YOU
+                </div>
+
+                <div className="download-file-card" style={{ marginTop: 12 }}>
+                  <div className="download-file-icon">💾</div>
+                  <div className="download-file-meta">
+                    <div className="download-file-title">{retrievedItem.fileName}</div>
+                    <div className="download-file-specs">
+                      Size: {formatBytes(retrievedItem.fileSize)}
                     </div>
                   </div>
-
-                  {selectedFile && (
-                    <div className="upload-details">
-                      <div className="upload-file-info">
-                        <span>📄</span>
-                        <div>
-                          <div className="upload-file-name">{selectedFile.name}</div>
-                          <div className="upload-file-size">{formatBytes(selectedFile.size)}</div>
-                        </div>
-                      </div>
-                      <button 
-                        className="btn btn-ghost" 
-                        onClick={(e) => { e.stopPropagation(); setSelectedFile(null); }}
-                        style={{ padding: '6px 10px', fontSize: '0.65rem' }}
-                        disabled={isUploading}
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  )}
-
-                  {isUploading && (
-                    <div className="progress-container">
-                      <div className="progress-header">
-                        <span>Uploading file to storage...</span>
-                        <span>{uploadProgress}%</span>
-                      </div>
-                      <div className="progress-bar-bg">
-                        <div className="progress-bar-fill" style={{ width: `${uploadProgress}%` }}></div>
-                      </div>
-                    </div>
-                  )}
-
-                  <button 
+                  <a 
+                    href={retrievedItem.downloadUrl}
+                    download={retrievedItem.fileName}
                     className="btn btn-primary"
-                    onClick={handleFileUpload}
-                    disabled={!selectedFile || isUploading}
-                    style={{ padding: 12, background: 'var(--pixel-green, #4caf50)', color: '#fff', fontSize: '0.75rem' }}
+                    style={{ 
+                      padding: '10px 14px', 
+                      background: 'var(--pixel-green, #4caf50)', 
+                      color: '#fff', 
+                      fontSize: '0.7rem',
+                      textDecoration: 'none',
+                      display: 'inline-block'
+                    }}
                   >
-                    {isUploading ? 'UPLOADING...' : '📤 UPLOAD'}
-                  </button>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <div className="ticket-card" style={{ width: '100%', maxWidth: 450 }}>
-                    <div className="ticket-title">DINOSHARE TICKET</div>
-                    <div className="ticket-code-label">YOUR 4-DIGIT ACCESS CODE</div>
-                    <div className="ticket-code">{shareCode}</div>
-                    
-                    {qrCodeUrl && (
-                      <div className="ticket-qr">
-                        <img 
-                          src={qrCodeUrl} 
-                          alt="Access QR Code"
-                          style={{ width: 140, height: 140, imageRendering: 'pixelated' }}
-                        />
-                      </div>
-                    )}
-
-                    <div className="ticket-meta">
-                      Type code on receiving device or scan QR
-                    </div>
-                    <div className="ticket-expiry">
-                      ⌛ Expires in 24 hours
-                    </div>
-                  </div>
-
-                  <div style={{ width: '100%', maxWidth: 450, display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    <div className="link-group">
-                      <input 
-                        type="text" 
-                        className="link-input" 
-                        value={shareLink} 
-                        readOnly 
-                        onClick={(e) => e.target.select()}
-                      />
-                      <button className="link-copy-btn" onClick={copyLink}>
-                        {copiedLink ? 'COPIED!' : 'COPY'}
-                      </button>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: 8, flexDirection: 'column' }}>
-                      <button 
-                        className="btn btn-primary" 
-                        onClick={handleDownloadDirectly}
-                        disabled={isRetrieving}
-                        style={{ padding: 10, fontSize: '0.75rem', background: 'var(--pixel-green, #4caf50)', color: '#fff' }}
-                      >
-                        {isRetrieving ? 'DOWNLOADING...' : '📥 DOWNLOAD FILE'}
-                      </button>
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <button 
-                          className="btn btn-ghost" 
-                          onClick={copyCode}
-                          style={{ flex: 1, padding: 10, fontSize: '0.7rem' }}
-                        >
-                          {copiedCode ? '✓ CODE COPIED' : '📋 COPY CODE'}
-                        </button>
-                        <button 
-                          className="btn btn-primary" 
-                          onClick={resetShare}
-                          style={{ flex: 1, padding: 10, fontSize: '0.7rem', background: '#000', color: '#fff' }}
-                        >
-                          🔄 SHARE ANOTHER
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === 'receive' && (
-            <div className="share-panel">
-              <div className="code-input-container">
-                <div className="text-area-label">ENTER 4-DIGIT SHARE CODE:</div>
-                <div className="digit-inputs">
-                  {codeDigits.map((digit, i) => (
-                    <input
-                      key={i}
-                      type="text"
-                      ref={(el) => (digitInputRefs.current[i] = el)}
-                      className="digit-input"
-                      value={digit}
-                      onChange={(e) => handleDigitChange(i, e.target.value)}
-                      onKeyDown={(e) => handleDigitKeyDown(i, e)}
-                      onPaste={i === 0 ? handleDigitPaste : undefined}
-                      disabled={isRetrieving}
-                      placeholder="•"
-                    />
-                  ))}
-                </div>
-                
-                <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                  <button
-                    className="btn btn-primary"
-                    onClick={() => handleRetrieve()}
-                    disabled={isRetrieving || codeDigits.join('').length !== 4}
-                    style={{ padding: '8px 16px', fontSize: '0.7rem', background: 'var(--pixel-yellow, #ffeb3b)', color: '#000' }}
-                  >
-                    {isRetrieving ? 'RETRIEVING...' : '🔍 RETRIEVE'}
-                  </button>
-                  <button
-                    className="btn btn-ghost"
-                    onClick={clearCodeInputs}
-                    style={{ padding: '8px 16px', fontSize: '0.7rem' }}
-                  >
-                    CLEAR
-                  </button>
+                    DOWNLOAD
+                  </a>
                 </div>
               </div>
+            )}
 
-              {retrievedItem && (
-                <div className="download-result">
-                  <div className="download-result-header">
-                    📂 FILE READY FOR DOWNLOAD
-                  </div>
+            {!isRetrieving && (
+              <div style={{ marginTop: 24, textAlign: 'center', display: 'flex', gap: 10, justifyContent: 'center' }}>
+                <Link href="/tools/dinoshare" className="btn btn-ghost" style={{ fontSize: '0.7rem' }}>
+                  🦖 DINOSHARE HUB
+                </Link>
+                <button 
+                  className="btn btn-primary" 
+                  onClick={() => setIsDirectLink(false)}
+                  style={{ fontSize: '0.7rem', background: '#000', color: '#fff' }}
+                >
+                  📤 UPLOAD A FILE
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <>
+            <div className="share-tabs">
+              <button 
+                className={`share-tab-btn ${activeTab === 'send' ? 'active' : ''}`}
+                onClick={() => { setActiveTab('send'); setErrorMessage(''); setSuccessMessage(''); }}
+              >
+                📤 SEND FILE
+              </button>
+              <button 
+                className={`share-tab-btn ${activeTab === 'receive' ? 'active' : ''}`}
+                onClick={() => { setActiveTab('receive'); setErrorMessage(''); setSuccessMessage(''); }}
+              >
+                📥 RECEIVE FILE
+              </button>
+            </div>
 
-                  <div className="download-file-card">
-                    <div className="download-file-icon">💾</div>
-                    <div className="download-file-meta">
-                      <div className="download-file-title">{retrievedItem.fileName}</div>
-                      <div className="download-file-specs">
-                        Size: {formatBytes(retrievedItem.fileSize)}
+            <div className="share-card">
+              {errorMessage && (
+                <div className="retro-alert" style={{ marginBottom: 16 }}>
+                  <span>⚠️</span>
+                  <div>{errorMessage}</div>
+                </div>
+              )}
+
+              {isDemoWarning && (
+                <div className="retro-alert" style={{ marginBottom: 16, background: '#2b271b', borderColor: 'var(--pixel-yellow)', color: 'var(--pixel-yellow)' }}>
+                  <span>💡</span>
+                  <div><strong>Demo Mode:</strong> Live storage is not configured. Running in local simulation mode. (Enter code '9999' in the RECEIVE tab to test).</div>
+                </div>
+              )}
+
+              {successMessage && (
+                <div className="retro-success" style={{ marginBottom: 16 }}>
+                  <span>✓</span>
+                  <div>{successMessage}</div>
+                </div>
+              )}
+
+              {activeTab === 'send' && (
+                <div className="share-panel">
+                  {!shareCode ? (
+                    <div className="file-upload-container">
+                      <div 
+                        className={`upload-zone ${dragOver ? 'drag-over' : ''}`}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        onClick={() => fileInputRef.current?.click()}
+                        style={{ cursor: 'pointer', minHeight: 180 }}
+                      >
+                        <input 
+                          type="file" 
+                          ref={fileInputRef} 
+                          onChange={handleFileChange} 
+                          style={{ display: 'none' }}
+                        />
+                        <div className="upload-zone-icon">☁️</div>
+                        <div className="upload-zone-text">
+                          Drag & drop any file here, or click to browse
+                        </div>
+                      </div>
+
+                      {selectedFile && (
+                        <div className="upload-details">
+                          <div className="upload-file-info">
+                            <span>📄</span>
+                            <div>
+                              <div className="upload-file-name">{selectedFile.name}</div>
+                              <div className="upload-file-size">{formatBytes(selectedFile.size)}</div>
+                            </div>
+                          </div>
+                          <button 
+                            className="btn btn-ghost" 
+                            onClick={(e) => { e.stopPropagation(); setSelectedFile(null); }}
+                            style={{ padding: '6px 10px', fontSize: '0.65rem' }}
+                            disabled={isUploading}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      )}
+
+                      {isUploading && (
+                        <div className="progress-container">
+                          <div className="progress-header">
+                            <span>Uploading file to storage...</span>
+                            <span>{uploadProgress}%</span>
+                          </div>
+                          <div className="progress-bar-bg">
+                            <div className="progress-bar-fill" style={{ width: `${uploadProgress}%` }}></div>
+                          </div>
+                        </div>
+                      )}
+
+                      <button 
+                        className="btn btn-primary"
+                        onClick={handleFileUpload}
+                        disabled={!selectedFile || isUploading}
+                        style={{ padding: 12, background: 'var(--pixel-green, #4caf50)', color: '#fff', fontSize: '0.75rem' }}
+                      >
+                        {isUploading ? 'UPLOADING...' : '📤 UPLOAD'}
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <div className="ticket-card" style={{ width: '100%', maxWidth: 450 }}>
+                        <div className="ticket-title">DINOSHARE TICKET</div>
+                        <div className="ticket-code-label">YOUR 4-DIGIT ACCESS CODE</div>
+                        <div className="ticket-code">{shareCode}</div>
+                        
+                        {qrCodeUrl && (
+                          <div className="ticket-qr">
+                            <img 
+                              src={qrCodeUrl} 
+                              alt="Access QR Code"
+                              style={{ width: 140, height: 140, imageRendering: 'pixelated' }}
+                            />
+                          </div>
+                        )}
+
+                        <div className="ticket-meta">
+                          Type code on receiving device or scan QR
+                        </div>
+                        <div className="ticket-expiry">
+                          ⌛ Expires in 24 hours
+                        </div>
+                      </div>
+
+                      <div style={{ width: '100%', maxWidth: 450, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        <div className="link-group">
+                          <input 
+                            type="text" 
+                            className="link-input" 
+                            value={shareLink} 
+                            readOnly 
+                            onClick={(e) => e.target.select()}
+                          />
+                          <button className="link-copy-btn" onClick={copyLink}>
+                            {copiedLink ? 'COPIED!' : 'COPY'}
+                          </button>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: 8, flexDirection: 'column' }}>
+                          <button 
+                            className="btn btn-primary" 
+                            onClick={handleDownloadDirectly}
+                            disabled={isRetrieving}
+                            style={{ padding: 10, fontSize: '0.75rem', background: 'var(--pixel-green, #4caf50)', color: '#fff' }}
+                          >
+                            {isRetrieving ? 'DOWNLOADING...' : '📥 DOWNLOAD FILE'}
+                          </button>
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <button 
+                              className="btn btn-ghost" 
+                              onClick={copyCode}
+                              style={{ flex: 1, padding: 10, fontSize: '0.7rem' }}
+                            >
+                              {copiedCode ? '✓ CODE COPIED' : '📋 COPY CODE'}
+                            </button>
+                            <button 
+                              className="btn btn-primary" 
+                              onClick={resetShare}
+                              style={{ flex: 1, padding: 10, fontSize: '0.7rem', background: '#000', color: '#fff' }}
+                            >
+                              🔄 SHARE ANOTHER
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <a 
-                      href={retrievedItem.downloadUrl}
-                      download={retrievedItem.fileName}
-                      className="btn btn-primary"
-                      style={{ 
-                        padding: '10px 14px', 
-                        background: 'var(--pixel-green, #4caf50)', 
-                        color: '#fff', 
-                        fontSize: '0.7rem',
-                        textDecoration: 'none',
-                        display: 'inline-block'
-                      }}
-                    >
-                      DOWNLOAD
-                    </a>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'receive' && (
+                <div className="share-panel">
+                  <div className="code-input-container">
+                    <div className="text-area-label">ENTER 4-DIGIT SHARE CODE:</div>
+                    <div className="digit-inputs">
+                      {codeDigits.map((digit, i) => (
+                        <input
+                          key={i}
+                          type="text"
+                          ref={(el) => (digitInputRefs.current[i] = el)}
+                          className="digit-input"
+                          value={digit}
+                          onChange={(e) => handleDigitChange(i, e.target.value)}
+                          onKeyDown={(e) => handleDigitKeyDown(i, e)}
+                          onPaste={i === 0 ? handleDigitPaste : undefined}
+                          disabled={isRetrieving}
+                          placeholder="•"
+                        />
+                      ))}
+                    </div>
+                    
+                    <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                      <button
+                        className="btn btn-primary"
+                        onClick={() => handleRetrieve()}
+                        disabled={isRetrieving || codeDigits.join('').length !== 4}
+                        style={{ padding: '8px 16px', fontSize: '0.7rem', background: 'var(--pixel-yellow, #ffeb3b)', color: '#000' }}
+                      >
+                        {isRetrieving ? 'RETRIEVING...' : '🔍 RETRIEVE'}
+                      </button>
+                      <button
+                        className="btn btn-ghost"
+                        onClick={clearCodeInputs}
+                        style={{ padding: '8px 16px', fontSize: '0.7rem' }}
+                      >
+                        CLEAR
+                      </button>
+                    </div>
                   </div>
+
+                  {retrievedItem && (
+                    <div className="download-result">
+                      <div className="download-result-header">
+                        📂 FILE READY FOR DOWNLOAD
+                      </div>
+
+                      <div className="download-file-card">
+                        <div className="download-file-icon">💾</div>
+                        <div className="download-file-meta">
+                          <div className="download-file-title">{retrievedItem.fileName}</div>
+                          <div className="download-file-specs">
+                            Size: {formatBytes(retrievedItem.fileSize)}
+                          </div>
+                        </div>
+                        <a 
+                          href={retrievedItem.downloadUrl}
+                          download={retrievedItem.fileName}
+                          className="btn btn-primary"
+                          style={{ 
+                            padding: '10px 14px', 
+                            background: 'var(--pixel-green, #4caf50)', 
+                            color: '#fff', 
+                            fontSize: '0.7rem',
+                            textDecoration: 'none',
+                            display: 'inline-block'
+                          }}
+                        >
+                          DOWNLOAD
+                        </a>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-          )}
-        </div>
+          </>
+        )}
       </div>
     </div>
   );
