@@ -56,9 +56,39 @@ export default function SocialDownloader() {
     setSuccessData(null);
     setPickerMedia(null);
 
-    // Validate Instagram URLs if the tab is set to Instagram
-    if (activeTab === 'instagram' && !url.includes('instagram.com') && !url.includes('instagr.am')) {
+    const trimmedUrl = url.trim();
+    const lowerUrl = trimmedUrl.toLowerCase();
+
+    // 1. Explicitly block TikTok URLs on frontend
+    if (lowerUrl.includes('tiktok.com') || lowerUrl.includes('douyin.com') || lowerUrl.includes('tiktokv.com')) {
+      setError('TikTok downloads are not supported by this tool.');
+      setIsPending(false);
+      return;
+    }
+
+    // 2. Validate URLs based on active tab
+    if (activeTab === 'instagram' && !lowerUrl.includes('instagram.com') && !lowerUrl.includes('instagr.am')) {
       setError('Please enter a valid Instagram link.');
+      setIsPending(false);
+      return;
+    }
+    if (activeTab === 'youtube' && !lowerUrl.includes('youtube.com') && !lowerUrl.includes('youtu.be')) {
+      setError('Please enter a valid YouTube link.');
+      setIsPending(false);
+      return;
+    }
+    if (activeTab === 'snapchat' && !lowerUrl.includes('snapchat.com')) {
+      setError('Please enter a valid Snapchat link.');
+      setIsPending(false);
+      return;
+    }
+    if (activeTab === 'pinterest' && !lowerUrl.includes('pinterest.com') && !lowerUrl.includes('pin.it')) {
+      setError('Please enter a valid Pinterest link.');
+      setIsPending(false);
+      return;
+    }
+    if (activeTab === 'facebook' && !lowerUrl.includes('facebook.com') && !lowerUrl.includes('fb.watch') && !lowerUrl.includes('fb.com')) {
+      setError('Please enter a valid Facebook link.');
       setIsPending(false);
       return;
     }
@@ -67,7 +97,7 @@ export default function SocialDownloader() {
       const res = await fetch('/api/download/social', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: url.trim() })
+        body: JSON.stringify({ url: trimmedUrl })
       });
 
       const json = await res.json();
@@ -81,16 +111,16 @@ export default function SocialDownloader() {
       if (data.status === 'picker') {
         // Multi-media carousel post
         setPickerMedia(data.picker);
-      } else if (data.status === 'redirect' || data.status === 'tunnel') {
+      } else if (data.status === 'redirect') {
         // Single video/photo download link
         setSuccessData(data.url);
         
-        // Auto-trigger download trigger
+        // Auto-trigger download
         const a = document.createElement('a');
         a.href = data.url;
         a.target = '_blank';
         a.rel = 'noopener noreferrer';
-        a.download = `downloader_${Date.now()}`;
+        a.download = `social_download_${Date.now()}`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -116,7 +146,7 @@ export default function SocialDownloader() {
         <h1 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
           📥 Social Media Downloader
         </h1>
-        <p>Save media and Reels from Instagram directly to your device.</p>
+        <p>Save media and Reels from Instagram, YouTube, Snapchat, Pinterest, and Facebook directly to your device.</p>
       </div>
 
       <div className="social-layout">
@@ -125,11 +155,11 @@ export default function SocialDownloader() {
             <h2>Download Reels & Videos</h2>
           </div>
           <p className="downloader-description">
-            Paste any public social media link below to fetch the high-quality source video or photo files.
+            Paste a public link from a supported platform below to fetch the high-quality source video or photo files.
           </p>
 
           {/* Platform Tabs */}
-          <div className="platform-tabs">
+          <div className="platform-tabs" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', width: 'auto' }}>
             <button 
               className={`platform-tab-btn ${activeTab === 'instagram' ? 'active' : ''}`}
               onClick={() => { setActiveTab('instagram'); handleClear(); }}
@@ -137,25 +167,43 @@ export default function SocialDownloader() {
               📷 Instagram
             </button>
             <button 
-              className={`platform-tab-btn ${activeTab === 'tiktok' ? 'active' : ''}`}
-              onClick={() => { setActiveTab('tiktok'); handleClear(); }}
-              style={{ opacity: 0.7 }}
-            >
-              🎵 TikTok (Beta)
-            </button>
-            <button 
               className={`platform-tab-btn ${activeTab === 'youtube' ? 'active' : ''}`}
               onClick={() => { setActiveTab('youtube'); handleClear(); }}
-              style={{ opacity: 0.7 }}
             >
-              📺 YouTube (Beta)
+              📺 YouTube
+            </button>
+            <button 
+              className={`platform-tab-btn ${activeTab === 'snapchat' ? 'active' : ''}`}
+              onClick={() => { setActiveTab('snapchat'); handleClear(); }}
+            >
+              👻 Snapchat
+            </button>
+            <button 
+              className={`platform-tab-btn ${activeTab === 'pinterest' ? 'active' : ''}`}
+              onClick={() => { setActiveTab('pinterest'); handleClear(); }}
+            >
+              📌 Pinterest
+            </button>
+            <button 
+              className={`platform-tab-btn ${activeTab === 'facebook' ? 'active' : ''}`}
+              onClick={() => { setActiveTab('facebook'); handleClear(); }}
+            >
+              📘 Facebook
             </button>
           </div>
 
           {/* URL Form */}
           <form onSubmit={handleSubmit}>
             <div className="url-input-wrapper">
-              <label htmlFor="social-url">Enter {activeTab === 'instagram' ? 'Instagram Reel or Post' : activeTab === 'tiktok' ? 'TikTok' : 'YouTube'} Link:</label>
+              <label htmlFor="social-url">
+                Enter {
+                  activeTab === 'instagram' ? 'Instagram Reel or Post' : 
+                  activeTab === 'youtube' ? 'YouTube Video or Short' : 
+                  activeTab === 'snapchat' ? 'Snapchat Spotlight or Story' : 
+                  activeTab === 'pinterest' ? 'Pinterest Video Pin' : 
+                  'Facebook Video or Reel'
+                } Link:
+              </label>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <input
                   ref={inputRef}
@@ -165,9 +213,13 @@ export default function SocialDownloader() {
                   placeholder={
                     activeTab === 'instagram'
                       ? 'https://www.instagram.com/reel/...'
-                      : activeTab === 'tiktok'
-                      ? 'https://www.tiktok.com/@user/video/...'
-                      : 'https://www.youtube.com/watch?v=...'
+                      : activeTab === 'youtube'
+                      ? 'https://www.youtube.com/watch?v=... or https://youtu.be/...'
+                      : activeTab === 'snapchat'
+                      ? 'https://www.snapchat.com/spotlight/...'
+                      : activeTab === 'pinterest'
+                      ? 'https://www.pinterest.com/pin/... or https://pin.it/...'
+                      : 'https://www.facebook.com/watch/?v=... or https://fb.watch/...'
                   }
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
@@ -233,7 +285,7 @@ export default function SocialDownloader() {
             <div className="status-container">
               <div className="status-message">
                 <div className="pixel-spinner"></div>
-                <span>Contacting downloader server... This may take up to 10 seconds.</span>
+                <span>Contacting downloader server... This may take up to 15 seconds.</span>
               </div>
               {currentFact && (
                 <div className="fact-container">
