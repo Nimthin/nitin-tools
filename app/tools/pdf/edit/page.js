@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { PDFDocument, rgb, StandardFonts, PDFName, PDFString, PDFArray } from 'pdf-lib';
+import { saveFileAs } from '@/tools-logic/saveFile';
 
 /* ==========================================================================
    PDF Edit — production editor
@@ -849,14 +850,32 @@ export default function EditPdf() {
           </div>
           <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <button className="btn btn-ghost" onClick={() => setIsComplete(false)}>Continue Editing</button>
-            <a
-              href={downloadUrl}
-              download={`edited_${file?.name || 'document.pdf'}`}
+            <button
               className="btn btn-primary"
               style={{ background: 'var(--pixel-green)', textDecoration: 'none', display: 'inline-block' }}
+              onClick={async () => {
+                if (!downloadUrl) return;
+                try {
+                  const response = await fetch(downloadUrl);
+                  const blob = await response.blob();
+                  await saveFileAs(blob, `edited_${file?.name || 'document.pdf'}`, {
+                    description: 'PDF Document',
+                    mimeType: 'application/pdf',
+                    extensions: ['.pdf'],
+                  });
+                } catch (err) {
+                  // Fallback
+                  const link = document.createElement('a');
+                  link.href = downloadUrl;
+                  link.download = `edited_${file?.name || 'document.pdf'}`;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }
+              }}
             >
               ⬇️ Download PDF
-            </a>
+            </button>
           </div>
         </div>
       </div>

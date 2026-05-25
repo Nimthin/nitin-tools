@@ -3,6 +3,7 @@ import { useState, useRef } from 'react';
 import Link from 'next/link';
 import { PDFDocument } from 'pdf-lib';
 import { encryptPDF } from '@pdfsmaller/pdf-encrypt-lite';
+import { saveFileAs } from '@/tools-logic/saveFile';
 
 // FairyLights Component for the Success Screen
 const FairyLights = () => {
@@ -95,17 +96,14 @@ export default function ProtectUnlockPdf() {
       );
 
       const blob = new Blob([encryptedBytes], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `Protected_${file.name}`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      setTimeout(() => URL.revokeObjectURL(url), 5000);
-      setIsComplete(true);
+      
+      const saved = await saveFileAs(blob, `Protected_${file.name}`, {
+        description: 'PDF Document',
+        mimeType: 'application/pdf',
+        extensions: ['.pdf'],
+      });
+      
+      if (saved) setIsComplete(true);
     } catch (err) {
       console.error(err);
       setError("Failed to password protect PDF: " + (err.message || 'unknown error'));
@@ -126,17 +124,14 @@ export default function ProtectUnlockPdf() {
       
       const pdfBytes = await pdfDoc.save();
       const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
       
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `Unlocked_${file.name}`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const saved = await saveFileAs(blob, `Unlocked_${file.name}`, {
+        description: 'PDF Document',
+        mimeType: 'application/pdf',
+        extensions: ['.pdf'],
+      });
       
-      setTimeout(() => URL.revokeObjectURL(url), 5000);
-      setIsComplete(true);
+      if (saved) setIsComplete(true);
     } catch (err) {
       console.error(err);
       if (err.message.includes('password') || err.message.includes('encrypted')) {

@@ -14,6 +14,7 @@ const allTools = [
   { title: 'Image Toolkit',  description: 'Remove backgrounds and extract text with local AI.', icon: <PixelIcon type="image"   size={32} />, href: '/tools/image' },
   { title: 'PDF Toolkit',    description: 'Convert images to PDF and manage your pages securely.', icon: <PixelIcon type="pdf"    size={32} />, href: '/tools/pdf' },
   { title: 'YouTube to MP3', description: 'Download high-quality audio from any YouTube video.',   icon: <PixelIcon type="youtube" size={32} />, href: '/tools/youtube-audio' },
+  { title: 'Social Downloader', description: 'Download videos and Reels from Instagram and other platforms.', icon: <PixelIcon type="video" size={32} />, href: '/tools/social-downloader' },
   { title: 'Video Toolkit',  description: 'Trim, edit, and export video clips client-side.',        icon: <PixelIcon type="video"   size={32} />, href: '/tools/video' },
   { title: 'QR Generator',   description: 'Generate customizable QR codes client-side.',            icon: <PixelIcon type="qr"      size={32} />, href: '/tools/qr-generator' },
   { title: 'File converter', description: 'Convert files, documents, and media formats instantly.', icon: <PixelIcon type="convert" size={32} />, href: '/tools/file-converter' },

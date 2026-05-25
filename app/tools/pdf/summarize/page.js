@@ -2,6 +2,7 @@
 import { useState, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { marked } from 'marked';
+import { saveFileAs } from '@/tools-logic/saveFile';
 
 /* ==========================================================================
    PDF Summarize — Production Llama-only Version
@@ -59,13 +60,14 @@ const chunkText = (text, maxLength = 45000) => {
   return chunks.length ? chunks : [text];
 };
 
-const downloadBlob = (text, filename, type) => {
+const downloadBlob = async (text, filename, type) => {
   const blob = new Blob([text], { type });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 1500);
+  const ext = filename.match(/\.([^.]+)$/)?.[1] || 'txt';
+  await saveFileAs(blob, filename, {
+    description: ext.toUpperCase() + ' File',
+    mimeType: type,
+    extensions: ['.' + ext],
+  });
 };
 
 const downloadPdf = async (text, filename) => {
@@ -127,7 +129,12 @@ const downloadPdf = async (text, filename) => {
     }
   }
 
-  doc.save(filename);
+  const pdfBlob = doc.output('blob');
+  await saveFileAs(pdfBlob, filename, {
+    description: 'PDF Document',
+    mimeType: 'application/pdf',
+    extensions: ['.pdf'],
+  });
 };
 
 export default function SummarizePdf() {

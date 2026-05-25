@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import Link from 'next/link';
 import { PDFDocument } from 'pdf-lib';
+import { saveFileAs } from '@/tools-logic/saveFile';
 import './pdf-merger.css';
 
 const FairyLights = () => {
@@ -120,20 +121,18 @@ export default function PdfMerger() {
 
       const mergedPdfBytes = await mergedPdf.save();
       const blob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
       
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `Merged_Document_${Date.now()}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const saved = await saveFileAs(blob, `Merged_Document.pdf`, {
+        description: 'PDF Document',
+        mimeType: 'application/pdf',
+        extensions: ['.pdf'],
+      });
       
-      setTimeout(() => URL.revokeObjectURL(url), 5000);
-      
-      // Auto-clear after download
-      setPdfs([]);
-      setIsComplete(true);
+      if (saved) {
+        // Auto-clear after download
+        setPdfs([]);
+        setIsComplete(true);
+      }
 
     } catch (err) {
       console.error(err);

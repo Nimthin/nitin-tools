@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { PDFDocument } from 'pdf-lib';
+import { saveFileAs } from '@/tools-logic/saveFile';
 import './compress.css';
 
 /* ==========================================================================
@@ -20,27 +21,18 @@ import './compress.css';
    ========================================================================== */
 
 const PRESETS = {
-  lossless: {
-    id: 'lossless', label: 'Lossless',
-    blurb: 'Strips bloat. Keeps text, links, and form fields.',
-    savings: '0–20%',
-    rasterize: false,
-  },
   high: {
-    id: 'high', label: 'High Quality',
-    blurb: '200 DPI / JPEG 85%. Visually identical, big savings.',
+    id: 'high', label: 'High',
     savings: '40–70%',
     rasterize: true, dpi: 200, quality: 0.85,
   },
-  balanced: {
-    id: 'balanced', label: 'Balanced',
-    blurb: '150 DPI / JPEG 70%. Best default for most documents.',
+  medium: {
+    id: 'medium', label: 'Medium',
     savings: '70–85%',
     rasterize: true, dpi: 150, quality: 0.70,
   },
-  maximum: {
-    id: 'maximum', label: 'Maximum',
-    blurb: '100 DPI / JPEG 50%. Smallest file. Good for email.',
+  low: {
+    id: 'low', label: 'Low',
     savings: '85–95%',
     rasterize: true, dpi: 100, quality: 0.50,
   },
@@ -134,7 +126,7 @@ export default function CompressPdf() {
   const [originalSize, setOriginalSize] = useState(0);
   const [newSize, setNewSize] = useState(0);
 
-  const [presetId, setPresetId] = useState('balanced');
+  const [presetId, setPresetId] = useState('medium');
   const [grayscale, setGrayscale] = useState(false);
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -374,14 +366,25 @@ export default function CompressPdf() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (!result?.url || !file) return;
-    const link = document.createElement('a');
-    link.href = result.url;
-    link.download = `${preset.id}_${file.name}`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      const response = await fetch(result.url);
+      const blob = await response.blob();
+      await saveFileAs(blob, `${preset.id}_${file.name}`, {
+        description: 'PDF Document',
+        mimeType: 'application/pdf',
+        extensions: ['.pdf'],
+      });
+    } catch (err) {
+      // Fallback: direct link download
+      const link = document.createElement('a');
+      link.href = result.url;
+      link.download = `${preset.id}_${file.name}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   /* ====================================================================== */
@@ -515,9 +518,6 @@ export default function CompressPdf() {
                   >
                     <div className="preset-label">
                       {p.label}
-                    </div>
-                    <div className="preset-blurb">
-                      {p.blurb}
                     </div>
                     <div className="preset-savings">
                       ~{p.savings} smaller

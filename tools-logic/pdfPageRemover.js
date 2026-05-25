@@ -1,4 +1,5 @@
 import { PDFDocument } from 'pdf-lib';
+import { saveFileAs } from './saveFile';
 
 /**
  * Load a PDF file and return its bytes and page count.
@@ -51,38 +52,11 @@ export async function downloadPdf(pdfBytes, originalName) {
   const nameWithoutExt = originalName.replace(/\.pdf$/i, '');
   const suggestedName = `${nameWithoutExt}_modified.pdf`;
 
-  // Desktop: Use File System Access API for "Save As" dialog
-  if (typeof window !== 'undefined' && 'showSaveFilePicker' in window) {
-    try {
-      const handle = await window.showSaveFilePicker({
-        suggestedName: suggestedName,
-        types: [
-          {
-            description: 'PDF Document',
-            accept: { 'application/pdf': ['.pdf'] },
-          },
-        ],
-      });
-      const writable = await handle.createWritable();
-      await writable.write(pdfBytes);
-      await writable.close();
-      return; // Success — exit early
-    } catch (err) {
-      // User cancelled the dialog or API failed — fall through to regular download
-      if (err.name === 'AbortError') return; // User cancelled, do nothing
-    }
-  }
-
-  // Mobile / Fallback: Regular download with .pdf extension
-  const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.download = suggestedName;
-  link.href = url;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  await saveFileAs(pdfBytes, suggestedName, {
+    description: 'PDF Document',
+    mimeType: 'application/pdf',
+    extensions: ['.pdf'],
+  });
 }
 
 /**

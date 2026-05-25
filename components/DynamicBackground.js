@@ -25,6 +25,8 @@ export default function DynamicBackground() {
     bgColor = '#00bcd4'; // Cyan
   } else if (pathname?.startsWith('/tools/youtube')) {
     bgColor = '#9c27b0'; // Purple
+  } else if (pathname?.startsWith('/tools/social-downloader')) {
+    bgColor = '#ff5722'; // Deep Orange
   } else if (pathname?.startsWith('/tools/video')) {
     bgColor = '#e91e63'; // Pink
   } else if (pathname?.startsWith('/tools/qr-generator')) {

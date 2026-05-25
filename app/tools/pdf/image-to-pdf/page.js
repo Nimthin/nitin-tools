@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import Link from 'next/link';
 import { PDFDocument } from 'pdf-lib';
+import { saveFileAs } from '@/tools-logic/saveFile';
 import './image-to-pdf.css';
 
 const FairyLights = () => {
@@ -144,20 +145,18 @@ export default function ImageToPdf() {
 
       const pdfBytes = await pdfDoc.save();
       const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
       
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `Images_${images.length}_merged.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const saved = await saveFileAs(blob, `Images_${images.length}_merged.pdf`, {
+        description: 'PDF Document',
+        mimeType: 'application/pdf',
+        extensions: ['.pdf'],
+      });
       
-      setTimeout(() => URL.revokeObjectURL(url), 5000);
-      
-      // Show success screen
-      setImages([]);
-      setIsComplete(true);
+      if (saved) {
+        // Show success screen
+        setImages([]);
+        setIsComplete(true);
+      }
 
     } catch (err) {
       console.error(err);
