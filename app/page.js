@@ -14,12 +14,13 @@ const allTools = [
   { title: 'Image Toolkit',  description: 'Remove backgrounds and extract text with local AI.', icon: <PixelIcon type="image"   size={32} />, href: '/tools/image' },
   { title: 'PDF Toolkit',    description: 'Convert images to PDF and manage your pages securely.', icon: <PixelIcon type="pdf"    size={32} />, href: '/tools/pdf' },
   { title: 'YouTube to MP3', description: 'Download high-quality audio from any YouTube video.',   icon: <PixelIcon type="youtube" size={32} />, href: '/tools/youtube-audio' },
-  { title: 'Social Downloader', description: 'Download videos and Reels from Instagram and other platforms.', icon: <PixelIcon type="video" size={32} />, href: '/tools/social-downloader' },
   { title: 'Video Toolkit',  description: 'Trim, edit, and export video clips client-side.',        icon: <PixelIcon type="video"   size={32} />, href: '/tools/video' },
   { title: 'QR Generator',   description: 'Generate customizable QR codes client-side.',            icon: <PixelIcon type="qr"      size={32} />, href: '/tools/qr-generator' },
   { title: 'File converter', description: 'Convert files, documents, and media formats instantly.', icon: <PixelIcon type="convert" size={32} />, href: '/tools/file-converter' },
   { title: 'AI Chatbot',     description: 'Chat with an intelligent AI assistant.',                 icon: <PixelIcon type="bot"     size={32} />, href: '/tools/chatbot' },
   { title: 'DinoShare',      description: 'Upload & share files across devices instantly.',         icon: <PixelIcon type="share"   size={32} />, href: '/tools/dinoshare' },
+  { title: 'Notes App',       description: 'Advanced note-taking with rich text, folders & export.',  icon: <PixelIcon type="notes"   size={32} />, href: '/tools/notes' },
+  { title: 'DinoPlay',       description: 'Watch local videos, links, or YouTube together in perfect real-time sync.', icon: <PixelIcon type="video"   size={32} />, href: '/tools/dinoplay' },
 ];
 
 const subTools = [
@@ -31,6 +32,7 @@ const subTools = [
   { title: 'PDF Merger',          description: 'Combine multiple PDF files into one.',              icon: <PixelIcon type="link"     size={32} />, href: '/tools/pdf/pdf-merger' },
   { title: 'File Share',          description: 'Upload and share files across devices instantly.',   icon: <PixelIcon type="share"    size={32} />, href: '/tools/dinoshare/file' },
   { title: 'Text Clipboard',      description: 'Instantly share text clipboards across devices.',   icon: <PixelIcon type="notes"    size={32} />, href: '/tools/dinoshare/text' },
+  { title: 'Notes Export',         description: 'Export notes as PDF, JPG, Markdown, or HTML.',       icon: <PixelIcon type="pdf"      size={32} />, href: '/tools/notes' },
 ];
 
 
@@ -233,9 +235,9 @@ export default function Home() {
           </div>
           <div className="footer-links">
             <h3>Utilities</h3>
-            <a href="/tools/image">Image Toolkit</a>
-            <a href="/tools/pdf">PDF Toolkit</a>
-            <a href="/tools/youtube-audio">YouTube MP3</a>
+            <a href="/tools/image" target="_blank" rel="noopener noreferrer">Image Toolkit</a>
+            <a href="/tools/pdf" target="_blank" rel="noopener noreferrer">PDF Toolkit</a>
+            <a href="/tools/youtube-audio" target="_blank" rel="noopener noreferrer">YouTube MP3</a>
           </div>
           <div className="footer-download">
             <h3>Get The App</h3>

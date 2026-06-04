@@ -8,6 +8,7 @@ export default function ClientLayoutWrapper({ children }) {
   const pathname = usePathname();
   // Check if it's the isolated /d/[code] page
   const isIsolated = pathname.startsWith('/d/') || pathname === '/d';
+  const isNotes = pathname.startsWith('/tools/notes');
 
   if (isIsolated) {
     return <main>{children}</main>;
@@ -16,7 +17,7 @@ export default function ClientLayoutWrapper({ children }) {
   return (
     <>
       <DynamicBackground />
-      <DarkModeToggle />
+      {!isNotes && <DarkModeToggle />}
       <main>{children}</main>
     </>
   );

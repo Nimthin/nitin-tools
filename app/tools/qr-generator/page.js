@@ -1,7 +1,9 @@
 'use client';
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import QRCode from 'qrcode';
+import jsQR from 'jsqr';
+import './qr-generator.css';
 
 /* ==========================================================================
    QR Code Generator
@@ -10,8 +12,6 @@ import QRCode from 'qrcode';
    • Customise foreground / background color, size, error correction, margin
    • Export PNG or SVG
    • Saves recent QRs to localStorage
-   • Requires the `qrcode` npm package — already used here via:
-       import QRCode from 'qrcode'
    ========================================================================== */
 
 const QR_TYPES = [
@@ -32,22 +32,19 @@ const EC_LEVELS = [
 ];
 
 const COLOR_PRESETS = [
-  { fg: '#000000', bg: '#ffffff' },
-  { fg: '#ffffff', bg: '#000000' },
-  { fg: '#1a1a1a', bg: '#ffeb3b' },
-  { fg: '#ffffff', bg: '#ff007f' },
-  { fg: '#ffffff', bg: '#00bcd4' },
-  { fg: '#000000', bg: '#cddc39' },
-  { fg: '#ffffff', bg: '#9c27b0' },
-  { fg: '#ffffff', bg: '#3f51b5' },
+  { fg: '#134b5c', bg: '#ffffff' }, // Deep Spruce on White
+  { fg: '#0b7888', bg: '#e6f7f6' }, // Deep Cyan on Light Mint
+  { fg: '#0d9488', bg: '#f2fbf9' }, // Teal Green on Pale Teal
+  { fg: '#ea580c', bg: '#fff7ed' }, // Vibrant Orange on Soft Cream
+  { fg: '#db2777', bg: '#fdf2f8' }, // Pink on Rose Water
+  { fg: '#7c3aed', bg: '#f5f3ff' }, // Violet on Soft Lilac
+  { fg: '#2563eb', bg: '#eff6ff' }, // Royal Blue on Soft Blue
+  { fg: '#dc2626', bg: '#fef2f2' }, // Red on Soft Red
 ];
 
 const escapeWifi = (s) =>
   (s || '').replace(/([\\;,":])/g, '\\$1');
 
-/* -------------------------------------------------------------------------- */
-/*  Build the actual payload string for each type                             */
-/* -------------------------------------------------------------------------- */
 function buildPayload(type, f) {
   switch (type) {
     case 'url':
@@ -96,10 +93,6 @@ function buildPayload(type, f) {
   }
 }
 
-/* ==========================================================================
-   Component
-   ========================================================================== */
-
 export default function QrGenerator() {
   const [type, setType] = useState('url');
   const [fields, setFields] = useState({
@@ -116,7 +109,7 @@ export default function QrGenerator() {
   const [size, setSize] = useState(512);
   const [margin, setMargin] = useState(2);
   const [ecLevel, setEcLevel] = useState('M');
-  const [fgColor, setFgColor] = useState('#000000');
+  const [fgColor, setFgColor] = useState('#134b5c');
   const [bgColor, setBgColor] = useState('#ffffff');
 
   // Result
@@ -129,9 +122,248 @@ export default function QrGenerator() {
   const canvasRef = useRef(null);
   const pngUrlRef = useRef(null);
 
-  /* ====================================================================== */
-  /*  localStorage history                                                   */
-  /* ====================================================================== */
+  // Scanner state
+  const [mode, setMode] = useState('generate'); // 'generate' | 'scan'
+  const [scanMethod, setScanMethod] = useState('camera'); // 'camera' | 'upload'
+  const [cameraDevices, setCameraDevices] = useState([]);
+  const [selectedCameraId, setSelectedCameraId] = useState('');
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [scanResult, setScanResult] = useState(null);
+  const [scanError, setScanError] = useState(null);
+  const [uploadedImage, setUploadedImage] = useState(null);
+  const [copiedScanResult, setCopiedScanResult] = useState(false);
+
+  // Center logo states
+  const [centerLogo, setCenterLogo] = useState('none'); // 'none' | 'auto' | 'custom'
+  const [customLogoUrl, setCustomLogoUrl] = useState(null);
+  
+  // URL shortening states
+  const [shortenUrl, setShortenUrl] = useState(false);
+  const [shortenedUrl, setShortenedUrl] = useState('');
+  const [isShortening, setIsShortening] = useState(false);
+
+  const videoRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const streamRef = useRef(null);
+  const canvasHelperRef = useRef(null);
+
+  // Stop camera helper
+  const stopCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    setIsCameraActive(false);
+  }, []);
+
+  // Start camera helper
+  const startCamera = async () => {
+    setScanError(null);
+    setScanResult(null);
+    try {
+      stopCamera();
+      const constraints = {
+        video: selectedCameraId
+          ? { deviceId: { exact: selectedCameraId } }
+          : { facingMode: 'environment' },
+      };
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.setAttribute('playsinline', 'true');
+        videoRef.current.play();
+        setIsCameraActive(true);
+      }
+    } catch (err) {
+      console.error(err);
+      setScanError('Failed to access camera. Please check permissions.');
+      setIsCameraActive(false);
+    }
+  };
+
+  // Enumerate cameras when scanner tab is opened
+  useEffect(() => {
+    if (mode === 'scan' && scanMethod === 'camera') {
+      navigator.mediaDevices.enumerateDevices()
+        .then((devices) => {
+          const videoDevices = devices.filter((d) => d.kind === 'videoinput');
+          const mapped = videoDevices.map((d, index) => ({
+            id: d.deviceId,
+            label: d.label || `Camera ${index + 1}`,
+          }));
+          setCameraDevices(mapped);
+          if (mapped.length > 0 && !selectedCameraId) {
+            setSelectedCameraId(mapped[0].id);
+          }
+        })
+        .catch((err) => {
+          console.error('Error listing camera devices:', err);
+        });
+    } else {
+      stopCamera();
+    }
+  }, [mode, scanMethod, selectedCameraId, stopCamera]);
+
+  // Restart camera when camera selection changes
+  useEffect(() => {
+    if (isCameraActive && selectedCameraId) {
+      startCamera();
+    }
+  }, [selectedCameraId]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, [stopCamera]);
+
+  // Video scanning loop
+  useEffect(() => {
+    let frameId;
+    const scanFrame = () => {
+      if (!videoRef.current || !isCameraActive) return;
+      const video = videoRef.current;
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        if (!canvasHelperRef.current) {
+          canvasHelperRef.current = document.createElement('canvas');
+        }
+        const canvas = canvasHelperRef.current;
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: 'dontInvert',
+        });
+        if (code) {
+          setScanResult(code.data);
+        }
+      }
+      frameId = requestAnimationFrame(scanFrame);
+    };
+
+    if (isCameraActive) {
+      frameId = requestAnimationFrame(scanFrame);
+    }
+    return () => {
+      if (frameId) {
+        cancelAnimationFrame(frameId);
+      }
+    };
+  }, [isCameraActive]);
+
+  // Image upload decoding
+  const processUploadedFile = (file) => {
+    setScanError(null);
+    setScanResult(null);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target.result;
+      setUploadedImage(dataUrl);
+
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height);
+        if (code) {
+          setScanResult(code.data);
+        } else {
+          setScanError('No valid QR code found in the image.');
+        }
+      };
+      img.onerror = () => {
+        setScanError('Failed to load image file.');
+      };
+      img.src = dataUrl;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processUploadedFile(file);
+    }
+  };
+
+  const handleImageDrop = (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer?.files?.[0];
+    if (file) {
+      processUploadedFile(file);
+    }
+  };
+
+  const copyPayloadFromScan = async () => {
+    if (!scanResult) return;
+    try {
+      await navigator.clipboard.writeText(scanResult);
+      setCopiedScanResult(true);
+      setTimeout(() => setCopiedScanResult(false), 1500);
+    } catch {}
+  };
+
+  // Logo upload helper
+  const handleLogoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setCustomLogoUrl(event.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // TinyURL shortener effect
+  useEffect(() => {
+    if (type === 'url' && shortenUrl && fields.url) {
+      setIsShortening(true);
+      const urlToShorten = fields.url.trim();
+      if (!urlToShorten.startsWith('http')) {
+        setIsShortening(false);
+        setShortenedUrl('');
+        return;
+      }
+      
+      const timer = setTimeout(() => {
+        fetch(`https://tinyurl.com/api-create?url=${encodeURIComponent(urlToShorten)}`)
+          .then((res) => res.text())
+          .then((short) => {
+            if (short && short.startsWith('http')) {
+              setShortenedUrl(short);
+            } else {
+              setShortenedUrl('');
+            }
+            setIsShortening(false);
+          })
+          .catch((err) => {
+            console.error("Shortening failed:", err);
+            setShortenedUrl('');
+            setIsShortening(false);
+          });
+      }, 600); // Debounce typing
+      
+      return () => clearTimeout(timer);
+    } else {
+      setShortenedUrl('');
+      setIsShortening(false);
+    }
+  }, [fields.url, shortenUrl, type]);
+
   useEffect(() => {
     try {
       const raw = localStorage.getItem('qr-recent');
@@ -147,14 +379,22 @@ export default function QrGenerator() {
     });
   };
 
-  /* ====================================================================== */
-  /*  Build payload                                                          */
-  /* ====================================================================== */
-  const payload = useMemo(() => buildPayload(type, fields), [type, fields]);
+  const deleteRecentItem = (e, indexToDelete) => {
+    e.stopPropagation();
+    setRecent((prev) => {
+      const next = prev.filter((_, idx) => idx !== indexToDelete);
+      try { localStorage.setItem('qr-recent', JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
 
-  /* ====================================================================== */
-  /*  Render QR                                                              */
-  /* ====================================================================== */
+  const payload = useMemo(() => {
+    if (type === 'url' && shortenUrl && shortenedUrl) {
+      return shortenedUrl;
+    }
+    return buildPayload(type, fields);
+  }, [type, fields, shortenUrl, shortenedUrl]);
+
   useEffect(() => {
     if (!payload || !canvasRef.current) {
       setPngUrl(null);
@@ -164,7 +404,7 @@ export default function QrGenerator() {
 
     setError(null);
     const opts = {
-      errorCorrectionLevel: ecLevel,
+      errorCorrectionLevel: centerLogo !== 'none' ? 'Q' : ecLevel, // Force high redundancy if center logo is used
       margin,
       width: size,
       color: { dark: fgColor, light: bgColor },
@@ -172,10 +412,58 @@ export default function QrGenerator() {
 
     QRCode.toCanvas(canvasRef.current, payload, opts)
       .then(() => {
-        const url = canvasRef.current.toDataURL('image/png');
-        if (pngUrlRef.current) URL.revokeObjectURL(pngUrlRef.current);
-        pngUrlRef.current = url;
-        setPngUrl(url);
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+        
+        const finalizeCanvas = () => {
+          const url = canvas.toDataURL('image/png');
+          if (pngUrlRef.current) URL.revokeObjectURL(pngUrlRef.current);
+          pngUrlRef.current = url;
+          setPngUrl(url);
+        };
+
+        if (centerLogo !== 'none') {
+          const canvasSize = canvas.width;
+          const logoSize = canvasSize * 0.22;
+          const x = (canvasSize - logoSize) / 2;
+          const y = (canvasSize - logoSize) / 2;
+
+          // Draw circular mask container matching background color
+          ctx.fillStyle = bgColor;
+          ctx.beginPath();
+          ctx.arc(canvasSize / 2, canvasSize / 2, logoSize / 2 + 5, 0, 2 * Math.PI);
+          ctx.fill();
+
+          if (centerLogo === 'custom' && customLogoUrl) {
+            const img = new Image();
+            img.onload = () => {
+              ctx.save();
+              ctx.beginPath();
+              ctx.arc(canvasSize / 2, canvasSize / 2, logoSize / 2, 0, 2 * Math.PI);
+              ctx.clip();
+              ctx.drawImage(img, x, y, logoSize, logoSize);
+              ctx.restore();
+              finalizeCanvas();
+            };
+            img.onerror = () => {
+              finalizeCanvas();
+            };
+            img.src = customLogoUrl;
+          } else {
+            // Draw auto-emojis
+            const logoText = centerLogo === 'auto'
+              ? (QR_TYPES.find((x) => x.id === type)?.icon || '🔗')
+              : centerLogo;
+            ctx.font = `bold ${logoSize * 0.72}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = fgColor;
+            ctx.fillText(logoText, canvasSize / 2, canvasSize / 2);
+            finalizeCanvas();
+          }
+        } else {
+          finalizeCanvas();
+        }
       })
       .catch((err) => {
         console.error(err);
@@ -185,26 +473,33 @@ export default function QrGenerator() {
     QRCode.toString(payload, { ...opts, type: 'svg' })
       .then(setSvgString)
       .catch(() => {});
-  }, [payload, size, margin, ecLevel, fgColor, bgColor]);
+  }, [payload, size, margin, ecLevel, fgColor, bgColor, centerLogo, customLogoUrl, type]);
 
-  /* ====================================================================== */
-  /*  Download helpers                                                       */
-  /* ====================================================================== */
   const downloadPng = () => {
     if (!pngUrl) return;
+    const defaultName = `qr_${type}_${Date.now()}`;
+    const name = prompt("Enter a filename for the PNG image (without extension):", defaultName);
+    if (name === null) return; // user cancelled
+    const filename = (name.trim() || defaultName) + ".png";
+
     const a = document.createElement('a');
     a.href = pngUrl;
-    a.download = `qr_${type}_${Date.now()}.png`;
+    a.download = filename;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     saveToRecent({ type, payload, at: Date.now() });
   };
 
   const downloadSvg = () => {
     if (!svgString) return;
+    const defaultName = `qr_${type}_${Date.now()}`;
+    const name = prompt("Enter a filename for the SVG image (without extension):", defaultName);
+    if (name === null) return; // user cancelled
+    const filename = (name.trim() || defaultName) + ".svg";
+
     const blob = new Blob([svgString], { type: 'image/svg+xml' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = `qr_${type}_${Date.now()}.svg`;
+    a.href = url; a.download = filename;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 1500);
     saveToRecent({ type, payload, at: Date.now() });
@@ -223,52 +518,85 @@ export default function QrGenerator() {
     try { localStorage.removeItem('qr-recent'); } catch {}
   };
 
-  /* ====================================================================== */
-  /*  Render                                                                 */
-  /* ====================================================================== */
   const fieldChange = (k, v) => setFields((p) => ({ ...p, [k]: v }));
 
   return (
-    <div className="tool-page">
-      <Link href="/" className="tool-page-back">← Back to Toolkit</Link>
-      <div className="tool-page-header">
-        <h1>▦ QR Code Generator</h1>
-        <p>Make QR codes for URLs, WiFi, contacts and more — all client-side.</p>
+    <div className="qr-generator-page">
+      {/* Header bar */}
+      <div className="qr-header">
+        <Link href="/" className="qr-back-btn">← Back to Toolkit</Link>
+        <div className="qr-title-group">
+          <h1>QR Code Generator</h1>
+          <p>Make or scan QR codes — all client-side.</p>
+        </div>
+        <div className="qr-mode-toggle">
+          <button 
+            className={`qr-mode-btn ${mode === 'generate' ? 'active' : ''}`}
+            onClick={() => setMode('generate')}
+          >
+            ➕ Generate
+          </button>
+          <button 
+            className={`qr-mode-btn ${mode === 'scan' ? 'active' : ''}`}
+            onClick={() => {
+              setMode('scan');
+              setScanResult(null);
+              setScanError(null);
+            }}
+          >
+            🔍 Scan QR
+          </button>
+        </div>
       </div>
 
-      <div className="result-container" style={{ padding: 20, background: 'var(--pixel-bg-card)', border: '3px solid var(--pixel-border)' }}>
-        {error && <div className="error-message" style={{ marginBottom: 16 }}>⚠️ {error}</div>}
+      {error && mode === 'generate' && <div className="error-message" style={{ margin: '16px 24px 0 24px' }}>⚠️ {error}</div>}
 
-        {/* Type tabs */}
-        <div style={{
-          display: 'flex', gap: 4, flexWrap: 'wrap',
-          marginBottom: 16, padding: 6,
-          background: '#0d0d0d', border: '2px solid var(--pixel-border)',
-        }}>
-          {QR_TYPES.map((t) => (
-            <button
-              key={t.id}
-              className={`btn ${type === t.id ? 'btn-selected' : 'btn-ghost'}`}
-              onClick={() => setType(t.id)}
-              style={{ padding: '8px 12px', fontSize: '0.7rem', flex: '1 1 auto' }}
-            >
-              {t.icon} {t.label}
-            </button>
-          ))}
-        </div>
+      {mode === 'generate' ? (
+        /* Main Workspace split into 3 scrollable panes */
+        <div className="qr-workspace">
+          {/* PANE 1 — Content Selection & Inputs */}
+          <div className="qr-pane qr-pane-left">
+            <div className="qr-tabs-container">
+              <span className="qr-section-label">Select Content Type</span>
+              <div className="qr-tabs">
+                {QR_TYPES.map((t) => (
+                  <button
+                    key={t.id}
+                    className={`qr-tab-btn ${type === t.id ? 'active' : ''}`}
+                    onClick={() => setType(t.id)}
+                  >
+                    <span className="tab-icon">{t.icon}</span>
+                    <span>{t.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
 
-        {/* Main grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
-          {/* LEFT — input fields */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <Panel title={`${QR_TYPES.find(x => x.id === type)?.label.toUpperCase()} CONTENT`}>
               {type === 'url' && (
-                <TextInput
-                  label="Destination URL"
-                  value={fields.url}
-                  onChange={(v) => fieldChange('url', v)}
-                  placeholder="https://example.com"
-                />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <TextInput
+                    label="Destination URL"
+                    value={fields.url}
+                    onChange={(v) => fieldChange('url', v)}
+                    placeholder="https://example.com"
+                  />
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
+                    <label className="qr-checkbox-label">
+                      <input 
+                        type="checkbox" 
+                        checked={shortenUrl}
+                        onChange={(e) => setShortenUrl(e.target.checked)} 
+                      />
+                      ⚡ Shorten URL (simpler QR)
+                    </label>
+                    {isShortening && (
+                      <span style={{ fontSize: '0.72rem', color: 'var(--pixel-cyan)', fontWeight: 600 }}>
+                        Shortening...
+                      </span>
+                    )}
+                  </div>
+                </div>
               )}
               {type === 'text' && (
                 <TextArea
@@ -297,7 +625,7 @@ export default function QrGenerator() {
                       { id: 'nopass', label: 'No password' },
                     ]}
                   />
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#ccc', fontSize: '0.85rem' }}>
+                  <label className="qr-checkbox-label">
                     <input type="checkbox" checked={fields.wifiHidden}
                       onChange={(e) => fieldChange('wifiHidden', e.target.checked)} />
                     Hidden network
@@ -332,32 +660,29 @@ export default function QrGenerator() {
                 </>
               )}
             </Panel>
+          </div>
 
-            <Panel title="STYLE">
-              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          {/* PANE 2 — Styling & Settings */}
+          <div className="qr-pane qr-pane-middle">
+            <Panel title="QR DESIGN & COLORS">
+              <div className="qr-color-row">
                 <ColorField label="Foreground" value={fgColor} onChange={setFgColor} />
                 <ColorField label="Background" value={bgColor} onChange={setBgColor} />
               </div>
 
-              <div style={{ marginTop: 8 }}>
-                <div style={labelStyle}>PRESETS</div>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              <div style={{ marginTop: 4 }}>
+                <span className="qr-label" style={{ marginBottom: 6, display: 'block' }}>QUICK PRESETS</span>
+                <div className="qr-presets-grid">
                   {COLOR_PRESETS.map((p, i) => (
                     <button
                       key={i}
                       onClick={() => { setFgColor(p.fg); setBgColor(p.bg); }}
-                      style={{
-                        width: 30, height: 30, padding: 0,
-                        background: p.bg, border: '2px solid #000',
-                        cursor: 'pointer', position: 'relative',
-                      }}
+                      className="qr-preset-btn"
+                      style={{ background: p.bg }}
                       title={`${p.fg} on ${p.bg}`}
                       aria-label={`Preset ${i + 1}`}
                     >
-                      <span style={{
-                        position: 'absolute', inset: 4,
-                        background: p.fg,
-                      }} />
+                      <span className="qr-preset-inner" style={{ background: p.fg }} />
                     </button>
                   ))}
                 </div>
@@ -372,115 +697,152 @@ export default function QrGenerator() {
                 value={margin} onChange={setMargin} />
 
               <div>
-                <div style={labelStyle}>ERROR CORRECTION</div>
-                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                <span className="qr-label" style={{ marginBottom: 6, display: 'block' }}>ERROR CORRECTION</span>
+                <div className="qr-ec-grid" style={{ marginBottom: 16 }}>
                   {EC_LEVELS.map((l) => (
                     <button
                       key={l.id} title={l.blurb}
-                      className={`btn ${ecLevel === l.id ? 'btn-selected' : 'btn-ghost'}`}
+                      className={`qr-ec-btn ${ecLevel === l.id ? 'active' : ''}`}
                       onClick={() => setEcLevel(l.id)}
-                      style={{ flex: 1, padding: '6px 8px', fontSize: '0.7rem' }}
                     >
                       {l.label}
                     </button>
                   ))}
                 </div>
               </div>
+
+              <div>
+                <span className="qr-label" style={{ marginBottom: 6, display: 'block' }}>CENTER LOGO / ICON</span>
+                <div className="qr-ec-grid" style={{ marginBottom: 12 }}>
+                  {[
+                    { id: 'none', label: 'None' },
+                    { id: 'auto', label: 'Auto Icon' },
+                    { id: 'custom', label: 'Custom Logo' }
+                  ].map(opt => (
+                    <button
+                      key={opt.id}
+                      className={`qr-ec-btn ${centerLogo === opt.id ? 'active' : ''}`}
+                      onClick={() => {
+                        setCenterLogo(opt.id);
+                        if (opt.id === 'custom' && !customLogoUrl) {
+                          // Trigger file upload helper automatically
+                          setTimeout(() => document.getElementById('logo-file-picker')?.click(), 100);
+                        }
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+
+                {centerLogo === 'custom' && (
+                  <div className="qr-logo-upload-wrap">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoUpload}
+                      id="logo-file-picker"
+                      style={{ display: 'none' }}
+                    />
+                    <label htmlFor="logo-file-picker" className="qr-logo-upload-btn">
+                      {customLogoUrl ? '🔄 Change Logo' : '📤 Upload Logo'}
+                    </label>
+                    {customLogoUrl && (
+                      <div className="qr-logo-preview-badge">
+                        <img src={customLogoUrl} alt="Logo preview" />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </Panel>
           </div>
 
-          {/* RIGHT — preview + download */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <Panel title="PREVIEW">
-              <div style={{
-                background:
-                  'repeating-conic-gradient(#1a1a1a 0% 25%, #222 0% 50%) 50% / 16px 16px',
-                padding: 20, display: 'flex',
-                alignItems: 'center', justifyContent: 'center',
-                minHeight: 280,
-              }}>
+          {/* PANE 3 — Preview, Download, and History */}
+          <div className="qr-pane qr-pane-right">
+            <Panel title="GENERATED PREVIEW">
+              <div className="qr-preview-wrapper">
                 {payload ? (
-                  <canvas ref={canvasRef} style={{
-                    maxWidth: '100%', maxHeight: 280,
-                    imageRendering: 'pixelated',
-                    boxShadow: '4px 4px 0 #000',
-                  }} />
+                  <canvas ref={canvasRef} className="qr-canvas" />
                 ) : (
                   <div style={{
-                    color: '#666', fontFamily: 'var(--font-pixel)',
-                    fontSize: '0.75rem', textAlign: 'center',
+                    color: 'var(--pixel-text-dim)',
+                    fontSize: '0.85rem', textAlign: 'center', lineHeight: '1.8'
                   }}>
-                    Fill in the content to generate
+                    Fill in the content<br />to generate
                   </div>
                 )}
               </div>
 
-              <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+              <div className="qr-action-row">
                 <button
-                  className="btn btn-primary"
+                  className="qr-action-btn qr-btn-green"
                   onClick={downloadPng}
                   disabled={!payload}
-                  style={{ flex: 1, padding: '10px', fontSize: '0.75rem', background: 'var(--pixel-green)' }}
-                >⬇ PNG</button>
+                >
+                  ⬇ PNG
+                </button>
                 <button
-                  className="btn btn-primary"
+                  className="qr-action-btn qr-btn-cyan"
                   onClick={downloadSvg}
                   disabled={!payload}
-                  style={{ flex: 1, padding: '10px', fontSize: '0.75rem', background: 'var(--pixel-cyan)', color: '#000' }}
-                >⬇ SVG</button>
+                >
+                  ⬇ SVG
+                </button>
                 <button
-                  className="btn btn-ghost"
+                  className="qr-action-btn qr-btn-dark"
                   onClick={copyPayload}
                   disabled={!payload}
-                  style={{ padding: '10px', fontSize: '0.75rem' }}
                 >
                   {copied ? '✓ Copied' : '📋 Copy data'}
                 </button>
               </div>
 
               {payload && (
-                <div style={{
-                  marginTop: 10, padding: '8px 10px', background: '#0d0d0d',
-                  border: '1px solid #333', fontSize: '0.75rem', color: '#aaa',
-                  maxHeight: 80, overflow: 'auto', wordBreak: 'break-all',
-                  fontFamily: 'monospace',
-                }}>
+                <div className="qr-payload-box">
                   {payload}
                 </div>
               )}
             </Panel>
 
             {recent.length > 0 && (
-              <Panel title="RECENT">
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <Panel title="RECENT SCAN LOG">
+                <div className="qr-history-list">
                   {recent.map((r, i) => (
-                    <button
-                      key={i}
-                      onClick={() => {
-                        // Restore as plain text content for simplicity
-                        setType('text');
-                        setFields((p) => ({ ...p, text: r.payload }));
-                      }}
-                      style={{
-                        textAlign: 'left', padding: '8px 10px',
-                        background: '#0d0d0d', color: '#ccc',
-                        border: '1px solid #333', cursor: 'pointer',
-                        fontSize: '0.75rem', fontFamily: 'monospace',
-                        overflow: 'hidden', textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      <span style={{ color: 'var(--pixel-cyan)' }}>
-                        {QR_TYPES.find((t) => t.id === r.type)?.icon}
-                      </span>{' '}
-                      {r.payload.slice(0, 60)}
-                    </button>
+                    <div key={i} className="qr-history-item">
+                      <button
+                        className="qr-history-click-area"
+                        onClick={() => {
+                          setType(r.type);
+                          if (r.type === 'text') {
+                            setFields((p) => ({ ...p, text: r.payload }));
+                          } else if (r.type === 'url') {
+                            setFields((p) => ({ ...p, url: r.payload }));
+                          } else {
+                            setFields((p) => ({ ...p, text: r.payload }));
+                            setType('text'); // fallback
+                          }
+                        }}
+                      >
+                        <span style={{ color: 'var(--pixel-cyan)', marginRight: 6 }}>
+                          {QR_TYPES.find((t) => t.id === r.type)?.icon}
+                        </span>
+                        {r.payload.slice(0, 60)}
+                      </button>
+                      <button 
+                        className="qr-history-delete-btn"
+                        onClick={(e) => deleteRecentItem(e, i)}
+                        title="Delete entry"
+                      >
+                        ✕
+                      </button>
+                    </div>
                   ))}
                 </div>
                 <button
-                  className="btn btn-ghost"
+                  className="qr-action-btn qr-btn-dark"
                   onClick={clearRecent}
-                  style={{ marginTop: 6, padding: '6px 8px', fontSize: '0.65rem' }}
+                  style={{ marginTop: 8, padding: '8px 14px', fontSize: '0.72rem', width: 'auto' }}
                 >
                   Clear history
                 </button>
@@ -488,7 +850,176 @@ export default function QrGenerator() {
             )}
           </div>
         </div>
-      </div>
+      ) : (
+        /* Scan Workspace */
+        <div className="qr-workspace">
+          {/* PANE 1 — Scan Controls */}
+          <div className="qr-pane qr-pane-left" style={{ flex: 1.2 }}>
+            <Panel title="CHOOSE SCAN METHOD">
+              <div className="qr-scan-methods">
+                <button
+                  className={`qr-ec-btn ${scanMethod === 'camera' ? 'active' : ''}`}
+                  onClick={() => {
+                    setScanMethod('camera');
+                    setScanResult(null);
+                    setScanError(null);
+                  }}
+                >
+                  📷 Camera Scan
+                </button>
+                <button
+                  className={`qr-ec-btn ${scanMethod === 'upload' ? 'active' : ''}`}
+                  onClick={() => {
+                    setScanMethod('upload');
+                    setScanResult(null);
+                    setScanError(null);
+                    stopCamera();
+                  }}
+                >
+                  📤 Upload Image
+                </button>
+              </div>
+            </Panel>
+
+            {scanMethod === 'camera' && (
+              <Panel title="CAMERA SETTINGS">
+                {cameraDevices.length > 0 ? (
+                  <Select
+                    label="Select Camera"
+                    value={selectedCameraId}
+                    onChange={setSelectedCameraId}
+                    options={cameraDevices}
+                  />
+                ) : (
+                  <div style={{ fontSize: '0.78rem', color: 'var(--pixel-text-dim)', marginBottom: 8 }}>
+                    Searching for cameras...
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+                  {isCameraActive ? (
+                    <button className="qr-action-btn qr-btn-dark" onClick={stopCamera} style={{ flex: 1 }}>
+                      Stop Camera
+                    </button>
+                  ) : (
+                    <button className="qr-action-btn qr-btn-cyan" onClick={startCamera} style={{ flex: 1 }}>
+                      Start Camera
+                    </button>
+                  )}
+                </div>
+              </Panel>
+            )}
+
+            {scanMethod === 'upload' && (
+              <Panel title="UPLOAD QR IMAGE">
+                <div
+                  className="qr-upload-area"
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={handleImageDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <span style={{ fontSize: '1.8rem' }}>📁</span>
+                  <span>Drag & Drop or Click to Select QR Image</span>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleImageUpload}
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                  />
+                </div>
+              </Panel>
+            )}
+          </div>
+
+          {/* PANE 2 — Scanner Preview & Result */}
+          <div className="qr-pane qr-pane-right" style={{ flex: 1.8 }}>
+            <Panel title="SCANNER PREVIEW">
+              <div className="qr-scanner-preview-container">
+                {scanMethod === 'camera' ? (
+                  <div className="qr-camera-wrapper">
+                    <video
+                      ref={videoRef}
+                      playsInline
+                      muted
+                      className="qr-video-feed"
+                      style={{ display: isCameraActive ? 'block' : 'none' }}
+                    />
+                    {!isCameraActive && (
+                      <div className="qr-scanner-placeholder">
+                        <span>Camera is inactive. Click "Start Camera" to scan.</span>
+                      </div>
+                    )}
+                    {isCameraActive && (
+                      <div className="qr-scanner-overlay-box">
+                        <div className="qr-scanner-target-box"></div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="qr-upload-preview-wrapper" style={{ padding: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {uploadedImage ? (
+                      <img src={uploadedImage} alt="Uploaded QR code" className="qr-uploaded-img" />
+                    ) : (
+                      <div className="qr-scanner-placeholder">
+                        <span>No image uploaded. Drag & drop or select an image file.</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </Panel>
+
+            {scanResult && (
+              <Panel title="DECODED RESULT">
+                <div className="qr-scan-result-card">
+                  <span className="qr-scan-result-label">Decoded Payload:</span>
+                  <div className="qr-payload-box" style={{ maxHeight: 'none', margin: '4px 0' }}>
+                    {scanResult}
+                  </div>
+                  <div className="qr-action-row" style={{ marginTop: 8 }}>
+                    <button className="qr-action-btn qr-btn-cyan" onClick={copyPayloadFromScan}>
+                      {copiedScanResult ? '✓ Copied' : '📋 Copy Data'}
+                    </button>
+                    {scanResult.startsWith('http') && (
+                      <a
+                        href={scanResult}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="qr-action-btn qr-btn-green"
+                        style={{ textDecoration: 'none' }}
+                      >
+                        🔗 Open Link
+                      </a>
+                    )}
+                    <button
+                      className="qr-action-btn qr-btn-dark"
+                      onClick={() => {
+                        setMode('generate');
+                        // Pre-populate payload in generator
+                        if (scanResult.startsWith('http')) {
+                          setType('url');
+                          setFields((p) => ({ ...p, url: scanResult }));
+                        } else {
+                          setType('text');
+                          setFields((p) => ({ ...p, text: scanResult }));
+                        }
+                      }}
+                    >
+                      ✏️ Load in Generator
+                    </button>
+                  </div>
+                </div>
+              </Panel>
+            )}
+
+            {scanError && (
+              <div className="error-message" style={{ margin: '8px 0' }}>
+                ⚠️ {scanError}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -497,23 +1028,10 @@ export default function QrGenerator() {
 /*  Subcomponents                                                              */
 /* ========================================================================== */
 
-const labelStyle = {
-  fontFamily: 'var(--font-pixel)', fontSize: '0.65rem',
-  color: '#aaa', marginBottom: 6, letterSpacing: '0.5px',
-  display: 'block',
-};
-
 function Panel({ title, children }) {
   return (
-    <div style={{
-      background: '#1a1a1a', border: '2px solid var(--pixel-border)',
-      padding: 14, display: 'flex', flexDirection: 'column', gap: 10,
-    }}>
-      <div style={{
-        fontFamily: 'var(--font-pixel)', fontSize: '0.75rem',
-        color: 'var(--pixel-yellow)', letterSpacing: '1px',
-        paddingBottom: 8, borderBottom: '1px solid #333',
-      }}>{title}</div>
+    <div className="qr-panel">
+      <div className="qr-panel-title">{title}</div>
       {children}
     </div>
   );
@@ -521,17 +1039,13 @@ function Panel({ title, children }) {
 
 function TextInput({ label, value, onChange, placeholder, type = 'text' }) {
   return (
-    <div>
-      <label style={labelStyle}>{label.toUpperCase()}</label>
+    <div className="qr-input-group">
+      <label className="qr-label">{label.toUpperCase()}</label>
       <input
         type={type} value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        style={{
-          width: '100%', padding: '10px', background: '#0d0d0d',
-          color: '#fff', border: '2px solid var(--pixel-border)',
-          fontSize: '0.85rem', outline: 'none', boxSizing: 'border-box',
-        }}
+        className="qr-input"
       />
     </div>
   );
@@ -539,19 +1053,14 @@ function TextInput({ label, value, onChange, placeholder, type = 'text' }) {
 
 function TextArea({ label, value, onChange, placeholder }) {
   return (
-    <div>
-      <label style={labelStyle}>{label.toUpperCase()}</label>
+    <div className="qr-input-group">
+      <label className="qr-label">{label.toUpperCase()}</label>
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         rows={3}
-        style={{
-          width: '100%', padding: '10px', background: '#0d0d0d',
-          color: '#fff', border: '2px solid var(--pixel-border)',
-          fontSize: '0.85rem', outline: 'none', resize: 'vertical',
-          fontFamily: 'inherit', boxSizing: 'border-box',
-        }}
+        className="qr-textarea"
       />
     </div>
   );
@@ -559,15 +1068,11 @@ function TextArea({ label, value, onChange, placeholder }) {
 
 function Select({ label, value, onChange, options }) {
   return (
-    <div>
-      <label style={labelStyle}>{label.toUpperCase()}</label>
+    <div className="qr-input-group">
+      <label className="qr-label">{label.toUpperCase()}</label>
       <select
         value={value} onChange={(e) => onChange(e.target.value)}
-        style={{
-          width: '100%', padding: '10px', background: '#0d0d0d',
-          color: '#fff', border: '2px solid var(--pixel-border)',
-          fontSize: '0.85rem', outline: 'none', boxSizing: 'border-box',
-        }}
+        className="qr-select"
       >
         {options.map((o) => (
           <option key={o.id} value={o.id}>{o.label}</option>
@@ -579,18 +1084,18 @@ function Select({ label, value, onChange, options }) {
 
 function ColorField({ label, value, onChange }) {
   return (
-    <div style={{ flex: 1, minWidth: 110 }}>
-      <label style={labelStyle}>{label.toUpperCase()}</label>
-      <div style={{ display: 'flex', gap: 6, alignItems: 'center', background: '#0d0d0d', border: '2px solid var(--pixel-border)', padding: 4 }}>
+    <div className="qr-color-field">
+      <label className="qr-label">{label.toUpperCase()}</label>
+      <div className="qr-color-input-wrapper">
         <input
           type="color" value={value}
           onChange={(e) => onChange(e.target.value)}
-          style={{ width: 36, height: 36, padding: 0, border: 'none', background: 'transparent', cursor: 'pointer' }}
+          className="qr-color-picker"
         />
         <input
           type="text" value={value}
           onChange={(e) => onChange(e.target.value)}
-          style={{ flex: 1, padding: '4px', background: 'transparent', color: '#fff', border: 'none', fontSize: '0.8rem', fontFamily: 'monospace', outline: 'none' }}
+          className="qr-color-text"
         />
       </div>
     </div>
@@ -598,15 +1103,20 @@ function ColorField({ label, value, onChange }) {
 }
 
 function Slider({ label, min, max, step, value, onChange }) {
+  const parts = label.split(' ');
+  const title = parts[0];
+  const val = parts.slice(1).join(' ');
+  
   return (
-    <div>
-      <div style={{ fontFamily: 'var(--font-pixel)', fontSize: '0.7rem', color: '#fff', marginBottom: 6 }}>
-        {label}
+    <div className="qr-slider-group">
+      <div className="qr-slider-header">
+        <label className="qr-label">{title.toUpperCase()}</label>
+        <span className="qr-slider-val">{val}</span>
       </div>
       <input
         type="range" min={min} max={max} step={step} value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        style={{ width: '100%' }}
+        className="qr-slider"
       />
     </div>
   );

@@ -6,6 +6,8 @@ export default function ToolCard({ title, description, icon, href, index = 0 }) 
       href={href} 
       className="tool-card staggered-card-entry"
       style={{ animationDelay: `${0.1 + (index * 0.1)}s` }}
+      target="_blank"
+      rel="noopener noreferrer"
     >
       <div className="tool-card-icon">{icon}</div>
       <div className="tool-card-content">

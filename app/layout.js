@@ -5,6 +5,11 @@ import ClientLayoutWrapper from '@/components/ClientLayoutWrapper';
 export const metadata = {
   title: 'DinoTools — Retro Utility Toolkit 🦕',
   description: 'A collection of free, fast, and private utility tools built for personal use. Process files, convert data, and automate small tasks — all in your browser.',
+  icons: {
+    icon: '/dino/animated-dino.svg',
+    shortcut: '/dino/animated-dino.svg',
+    apple: '/dino/dino-tools.png',
+  },
 };
 
 export default function RootLayout({ children }) {

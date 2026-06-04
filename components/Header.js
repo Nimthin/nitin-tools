@@ -73,10 +73,10 @@ export default function Header() {
           </Link>
           <nav className="apple-nav">
             <Link href="/" className="apple-nav-link">Home</Link>
-            <Link href="/tools/pdf" className="apple-nav-link">PDFs</Link>
-            <Link href="/tools/image" className="apple-nav-link">Images</Link>
-            <Link href="/tools/youtube-audio" className="apple-nav-link">Audio</Link>
-            <Link href="/tools/file-converter" className="apple-nav-link">Convert</Link>
+            <Link href="/tools/pdf" className="apple-nav-link" target="_blank" rel="noopener noreferrer">PDFs</Link>
+            <Link href="/tools/image" className="apple-nav-link" target="_blank" rel="noopener noreferrer">Images</Link>
+            <Link href="/tools/youtube-audio" className="apple-nav-link" target="_blank" rel="noopener noreferrer">Audio</Link>
+            <Link href="/tools/file-converter" className="apple-nav-link" target="_blank" rel="noopener noreferrer">Convert</Link>
             <button className="apple-nav-link feedback-btn" onClick={() => setIsFeedbackOpen(true)}>
               Feedback
             </button>
