@@ -20,7 +20,6 @@ const allTools = [
   { title: 'AI Chatbot',     description: 'Chat with an intelligent AI assistant.',                 icon: <PixelIcon type="bot"     size={32} />, href: '/tools/chatbot' },
   { title: 'DinoShare',      description: 'Upload & share files across devices instantly.',         icon: <PixelIcon type="share"   size={32} />, href: '/tools/dinoshare' },
   { title: 'Notes App',       description: 'Advanced note-taking with rich text, folders & export.',  icon: <PixelIcon type="notes"   size={32} />, href: '/tools/notes' },
-  { title: 'DinoPlay',       description: 'Watch local videos, links, or YouTube together in perfect real-time sync.', icon: <PixelIcon type="video"   size={32} />, href: '/tools/dinoplay' },
 ];
 
 const subTools = [

@@ -140,11 +140,13 @@ const downloadPdf = async (text, filename) => {
 export default function SummarizePdf() {
   const [file, setFile] = useState(null);
   const [summary, setSummary] = useState('');
-  const [phase, setPhase] = useState('idle'); // 'idle' | 'extracting' | 'summarizing' | 'done' | 'error'
+  const [phase, setPhase] = useState('idle'); // 'idle' | 'extracting' | 'ocr' | 'summarizing' | 'done' | 'error'
   const [extractProgress, setExtractProgress] = useState({ current: 0, total: 0 });
+  const [ocrProgress, setOcrProgress] = useState({ current: 0, total: 0 });
   const [summarizeProgress, setSummarizeProgress] = useState({ current: 0, total: 0, combining: false });
   const [error, setError] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [isScanned, setIsScanned] = useState(false);
   const fileInputRef = useRef(null);
 
   const summaryHtml = useMemo(() => {
@@ -157,6 +159,99 @@ export default function SummarizePdf() {
     }
   }, [summary]);
 
+  /* ── Render a PDF page to a canvas and return a data URL ── */
+  const renderPageToImage = async (pdf, pageNum, scale = 2) => {
+    const page = await pdf.getPage(pageNum);
+    const viewport = page.getViewport({ scale });
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    const ctx = canvas.getContext('2d');
+    await page.render({ canvasContext: ctx, viewport }).promise;
+    const dataUrl = canvas.toDataURL('image/png');
+    canvas.width = 0;
+    canvas.height = 0;
+    return dataUrl;
+  };
+
+  /* ── OCR a single page image using Tesseract.js ── */
+  const ocrPageImage = async (worker, imageDataUrl) => {
+    const { data: { text } } = await worker.recognize(imageDataUrl);
+    return text?.trim() || '';
+  };
+
+  /* ── Summarize text via Llama API ── */
+  const summarizeText = async (cleanText) => {
+    setPhase('summarizing');
+    const chunks = chunkText(cleanText, 45000);
+    setSummarizeProgress({ current: 0, total: chunks.length, combining: false });
+
+    let finalSummary = '';
+
+    if (chunks.length === 1) {
+      setSummarizeProgress({ current: 1, total: 1, combining: false });
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [
+            {
+              role: 'user',
+              content: `Please provide a clear, comprehensive summary of the following document. Use bullet points and clear sections with headings where appropriate:\n\n${chunks[0]}`
+            }
+          ],
+          selectedModel: 'meta-llama/llama-4-scout-17b-16e-instruct'
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to summarize.');
+      finalSummary = data.message;
+    } else {
+      const chunkSummaries = [];
+      for (let i = 0; i < chunks.length; i++) {
+        setSummarizeProgress({ current: i + 1, total: chunks.length, combining: false });
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: [
+              {
+                role: 'user',
+                content: `Summarize part ${i + 1} of the document:\n\n${chunks[i]}`
+              }
+            ],
+            selectedModel: 'meta-llama/llama-4-scout-17b-16e-instruct'
+          })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || `Failed to summarize part ${i + 1}.`);
+        chunkSummaries.push(data.message);
+      }
+
+      // Combine
+      setSummarizeProgress({ current: chunks.length, total: chunks.length, combining: true });
+      const combineResponse = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [
+            {
+              role: 'user',
+              content: `Please merge and write a cohesive, structured final summary of the document based on these section summaries. Use clear headings and bullet points:\n\n${chunkSummaries.join('\n\n')}`
+            }
+          ],
+          selectedModel: 'meta-llama/llama-4-scout-17b-16e-instruct'
+        })
+      });
+      const combineData = await combineResponse.json();
+      if (!combineResponse.ok) throw new Error(combineData.error || 'Failed to generate final summary.');
+      finalSummary = combineData.message;
+    }
+
+    return finalSummary;
+  };
+
   const handleFileChange = async (e) => {
     const f = e.target.files?.[0];
     if (!f) return;
@@ -167,10 +262,11 @@ export default function SummarizePdf() {
     setFile(f);
     setSummary('');
     setError(null);
+    setIsScanned(false);
     setPhase('extracting');
 
     try {
-      // 1. Extract Text
+      // 1. Extract Text via pdfjs-dist
       const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.js');
       pdfjsLib.GlobalWorkerOptions.workerSrc =
         `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
@@ -187,85 +283,54 @@ export default function SummarizePdf() {
         parts[i - 1] = extractPageText(tc);
         setExtractProgress({ current: i, total: n });
       }
-      try { pdf.destroy?.(); } catch {}
 
       const text = parts.map((t, idx) => `\n--- PAGE ${idx + 1} ---\n${t}`).join('\n').trim();
       const cleanText = text.replace(/--- PAGE \d+ ---/g, '').trim();
 
       if (!cleanText) {
-        setPhase('error');
-        setError('No selectable text found in this PDF. It looks like a scanned document.');
+        // ── Scanned PDF detected — fallback to OCR ──
+        setIsScanned(true);
+        setPhase('ocr');
+        setOcrProgress({ current: 0, total: n });
+
+        const Tesseract = await import('tesseract.js');
+        const worker = await Tesseract.createWorker('eng', 1, {
+          logger: () => {},
+        });
+
+        const ocrParts = [];
+        for (let i = 1; i <= n; i++) {
+          setOcrProgress({ current: i, total: n });
+          const pageImage = await renderPageToImage(pdf, i, 2.5);
+          const pageText = await ocrPageImage(worker, pageImage);
+          ocrParts.push(pageText);
+        }
+
+        await worker.terminate();
+        try { pdf.destroy?.(); } catch {}
+
+        const ocrText = ocrParts
+          .map((t, idx) => `\n--- PAGE ${idx + 1} ---\n${t}`)
+          .join('\n').trim();
+        const cleanOcrText = ocrText.replace(/--- PAGE \d+ ---/g, '').trim();
+
+        if (!cleanOcrText) {
+          setPhase('error');
+          setError('Could not extract any text from this PDF, even with OCR. The document may contain only blank or unreadable images.');
+          return;
+        }
+
+        // Summarize OCR text
+        const finalSummary = await summarizeText(cleanOcrText);
+        setSummary(finalSummary);
+        setPhase('done');
         return;
       }
 
-      // 2. Summarize (Llama API via /api/chat)
-      setPhase('summarizing');
-      const chunks = chunkText(cleanText, 45000);
-      setSummarizeProgress({ current: 0, total: chunks.length, combining: false });
+      try { pdf.destroy?.(); } catch {}
 
-      let finalSummary = '';
-
-      if (chunks.length === 1) {
-        setSummarizeProgress({ current: 1, total: 1, combining: false });
-        const response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            messages: [
-              {
-                role: 'user',
-                content: `Please provide a clear, comprehensive summary of the following document. Use bullet points and clear sections with headings where appropriate:\n\n${chunks[0]}`
-              }
-            ],
-            selectedModel: 'meta-llama/llama-4-scout-17b-16e-instruct'
-          })
-        });
-
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || 'Failed to summarize.');
-        finalSummary = data.message;
-      } else {
-        const chunkSummaries = [];
-        for (let i = 0; i < chunks.length; i++) {
-          setSummarizeProgress({ current: i + 1, total: chunks.length, combining: false });
-          const response = await fetch('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              messages: [
-                {
-                  role: 'user',
-                  content: `Summarize part ${i + 1} of the document:\n\n${chunks[i]}`
-                }
-              ],
-              selectedModel: 'meta-llama/llama-4-scout-17b-16e-instruct'
-            })
-          });
-          const data = await response.json();
-          if (!response.ok) throw new Error(data.error || `Failed to summarize part ${i + 1}.`);
-          chunkSummaries.push(data.message);
-        }
-
-        // Combine
-        setSummarizeProgress({ current: chunks.length, total: chunks.length, combining: true });
-        const combineResponse = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            messages: [
-              {
-                role: 'user',
-                content: `Please merge and write a cohesive, structured final summary of the document based on these section summaries. Use clear headings and bullet points:\n\n${chunkSummaries.join('\n\n')}`
-              }
-            ],
-            selectedModel: 'meta-llama/llama-4-scout-17b-16e-instruct'
-          })
-        });
-        const combineData = await combineResponse.json();
-        if (!combineResponse.ok) throw new Error(combineData.error || 'Failed to generate final summary.');
-        finalSummary = combineData.message;
-      }
-
+      // 2. Summarize native text
+      const finalSummary = await summarizeText(cleanText);
       setSummary(finalSummary);
       setPhase('done');
     } catch (err) {
@@ -280,7 +345,9 @@ export default function SummarizePdf() {
     setSummary('');
     setError(null);
     setPhase('idle');
+    setIsScanned(false);
     setExtractProgress({ current: 0, total: 0 });
+    setOcrProgress({ current: 0, total: 0 });
     setSummarizeProgress({ current: 0, total: 0, combining: false });
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -342,6 +409,34 @@ export default function SummarizePdf() {
           </div>
         )}
 
+        {/* ─── OCR progress ─── */}
+        {phase === 'ocr' && (
+          <div style={{ textAlign: 'center', padding: '50px 20px' }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: 18 }}>🔍</div>
+            <div style={{ fontFamily: 'var(--font-pixel)', color: 'var(--pixel-yellow)', fontSize: '0.85rem', marginBottom: 8 }}>
+              SCANNED PDF DETECTED
+            </div>
+            <div style={{ fontFamily: 'var(--font-pixel)', color: 'var(--pixel-cyan)', fontSize: '0.85rem', marginBottom: 16 }}>
+              OCR SCANNING PAGE {ocrProgress.current} / {ocrProgress.total}
+            </div>
+            <div style={{
+              width: '60%', maxWidth: 500, margin: '0 auto',
+              height: 14, background: '#1a1a1a',
+              border: '2px solid var(--pixel-border)', overflow: 'hidden',
+            }}>
+              <div style={{
+                width: `${ocrProgress.total ? (ocrProgress.current / ocrProgress.total) * 100 : 0}%`,
+                height: '100%',
+                background: 'linear-gradient(90deg, var(--pixel-yellow) 0%, var(--pixel-green) 100%)',
+                transition: 'width 0.2s ease',
+              }} />
+            </div>
+            <div style={{ color: '#888', fontSize: '0.75rem', marginTop: 14, fontFamily: 'var(--font-pixel)' }}>
+              Using Tesseract OCR to read text from images...
+            </div>
+          </div>
+        )}
+
         {/* ─── Summarizing progress ─── */}
         {phase === 'summarizing' && (
           <div style={{ textAlign: 'center', padding: '50px 20px' }}>
@@ -368,6 +463,16 @@ export default function SummarizePdf() {
               <span style={{ color: '#aaa', fontSize: '0.85rem' }}>
                 · {extractProgress.total} pages
               </span>
+              {isScanned && (
+                <span style={{
+                  background: 'var(--pixel-yellow)', color: '#000',
+                  padding: '2px 8px', fontSize: '0.65rem',
+                  fontFamily: 'var(--font-pixel)', fontWeight: 'bold',
+                  borderRadius: '2px',
+                }}>
+                  🔍 OCR SCANNED
+                </span>
+              )}
               <div style={{ flex: 1 }} />
               <button className="btn btn-ghost" onClick={resetTool}
                 style={{ padding: '6px 12px', fontSize: '0.7rem' }}>

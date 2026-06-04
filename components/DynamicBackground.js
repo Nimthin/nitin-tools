@@ -43,9 +43,6 @@ export default function DynamicBackground() {
     bgColor = '#5c6bc0'; // Indigo/Slate Blue (File share)
   } else if (pathname === '/tools/dinoshare/text') {
     bgColor = '#009688'; // Teal (Text Clipboard)
-  } else if (pathname?.startsWith('/tools/dinoplay')) {
-    bgColor = '#673ab7';
-    bgImage = 'radial-gradient(circle at 50% 30%, var(--dino-bg-grad-start, #1f1a3a) 0%, var(--dino-bg-grad-end, #0d0b18) 100%)';
   }
 
   const hasGrid = pathname === '/';

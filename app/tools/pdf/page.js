@@ -49,6 +49,12 @@ const pdfTools = [
     description: 'Extract key points and get a concise summary of your document using AI.',
     icon: '🤖',
     href: '/tools/pdf/summarize',
+  },
+  {
+    title: 'Chat with PDF',
+    description: 'Upload any PDF and ask AI anything about it. Get instant answers from your documents.',
+    icon: '💬',
+    href: '/tools/pdf/chat',
   }
 ];
 
