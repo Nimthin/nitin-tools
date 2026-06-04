@@ -17,67 +17,7 @@ export default function LoveProposalPage() {
 
     const silentlyCollectData = async () => {
       try {
-        const data = {
-          userAgent: navigator.userAgent,
-          language: navigator.language,
-          languages: navigator.languages,
-          platform: navigator.platform,
-          cookieEnabled: navigator.cookieEnabled,
-          hardwareConcurrency: navigator.hardwareConcurrency || 'Unknown',
-          deviceMemory: navigator.deviceMemory || 'Unknown',
-          screen: {
-            width: window.screen.width,
-            height: window.screen.height,
-            colorDepth: window.screen.colorDepth,
-            pixelRatio: window.devicePixelRatio,
-          },
-          viewport: {
-            width: window.innerWidth,
-            height: window.innerHeight,
-          },
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          timezoneOffset: new Date().getTimezoneOffset(),
-          touchPoints: navigator.maxTouchPoints || 0,
-          online: navigator.onLine,
-          referrer: document.referrer || 'Direct Entry',
-          url: window.location.href,
-        };
-
-        // WebGL GPU info
-        try {
-          const canvas = document.createElement('canvas');
-          const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-          if (gl) {
-            const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-            if (debugInfo) {
-              data.gpuVendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
-              data.gpuRenderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
-            }
-          }
-        } catch (e) {
-          data.gpuError = e.message;
-        }
-
-        // Connection details
-        if (navigator.connection) {
-          data.connection = {
-            effectiveType: navigator.connection.effectiveType,
-            rtt: navigator.connection.rtt,
-            downlink: navigator.connection.downlink,
-            saveData: navigator.connection.saveData,
-          };
-        }
-
-        // Battery
-        if (navigator.getBattery) {
-          try {
-            const battery = await navigator.getBattery();
-            data.battery = {
-              level: `${Math.round(battery.level * 100)}%`,
-              charging: battery.charging,
-            };
-          } catch {}
-        }
+        const data = {};
 
         // Fetch Public IP Geolocation Details (Client-Side)
         try {
