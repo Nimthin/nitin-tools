@@ -15,9 +15,10 @@ export async function getFfmpeg() {
       const { toBlobURL } = await import('@ffmpeg/util');
       const ff = new FFmpeg();
       ff.on('log', () => {});
+      const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd';
       await ff.load({
-        coreURL: '/ffmpeg/ffmpeg-core-umd.js',
-        wasmURL: '/ffmpeg/ffmpeg-core-umd.wasm',
+        coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+        wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
       });
       instance = ff;
       return ff;
