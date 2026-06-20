@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import PixelIcon from '@/components/PixelIcon';
+import ToolCard from '@/components/ToolCard';
 
 export const metadata = {
   title: 'Video Toolkit - NitinTools',
@@ -13,7 +14,6 @@ const videoTools = [
     icon: <PixelIcon type="video" size={32} />,
     href: '/tools/video/video-to-gif',
   },
-  // We can add more video tools here later like "Video to Audio", "Video Compressor", etc.
 ];
 
 export default function VideoToolkitPage() {
@@ -26,17 +26,11 @@ export default function VideoToolkitPage() {
       </div>
 
       <div className="tools-grid">
-        {videoTools.map((tool) => (
-          <Link href={tool.href} className="tool-card" key={tool.title}>
-            <div className="tool-icon">{tool.icon}</div>
-            <div className="tool-info">
-              <h2>{tool.title}</h2>
-              <p>{tool.description}</p>
-            </div>
-            <div className="tool-arrow">→</div>
-          </Link>
+        {videoTools.map((tool, index) => (
+          <ToolCard key={tool.title} {...tool} index={index} />
         ))}
       </div>
     </div>
   );
 }
+

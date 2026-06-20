@@ -125,30 +125,7 @@ export default function Home() {
     };
   }, []);
 
-  /* ====================================================================== */
-  /*  Card reveal-on-scroll (IntersectionObserver)                           */
-  /* ====================================================================== */
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduceMotion) {
-      document.querySelectorAll('.tools-grid .tool-card').forEach((el) => el.classList.add('revealed'));
-      return;
-    }
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            e.target.classList.add('revealed');
-            io.unobserve(e.target);
-          }
-        });
-      },
-      { threshold: 0.15 }
-    );
-    document.querySelectorAll('.tools-grid .tool-card').forEach((el) => io.observe(el));
-    return () => io.disconnect();
-  }, [filteredTools.length]);
+
 
   /* ====================================================================== */
   /*  Keyboard shortcut: / focuses search                                    */
@@ -456,7 +433,7 @@ export default function Home() {
           transform: translateY(0) rotate(0);
         }
         :global(.tools-grid .tool-card:hover) {
-          transform: translateY(-6px) rotate(0) scale(1.02) !important;
+          transform: translateY(-6px) rotate(0) scale(1.02);
         }
 
         /* ---------- 11 distinct card colors (same as before) ---------- */
