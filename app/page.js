@@ -20,6 +20,7 @@ const allTools = [
   { title: 'AI Chatbot',     description: 'Chat with an intelligent AI assistant.',                 icon: <PixelIcon type="bot"     size={32} />, href: '/tools/chatbot' },
   { title: 'DinoShare',      description: 'Upload & share files across devices instantly.',         icon: <PixelIcon type="share"   size={32} />, href: '/tools/dinoshare' },
   { title: 'Notes App',       description: 'Advanced note-taking with rich text, folders & export.',  icon: <PixelIcon type="notes"   size={32} />, href: '/tools/notes' },
+  { title: 'Fitness Toolkit', description: 'Track calories, macros, and nutrition for 300+ foods.',   icon: <PixelIcon type="fitness" size={32} />, href: '/tools/fitness' },
 ];
 
 const subTools = [
@@ -32,6 +33,7 @@ const subTools = [
   { title: 'File Share',          description: 'Upload and share files across devices instantly.',   icon: <PixelIcon type="share"    size={32} />, href: '/tools/dinoshare/file' },
   { title: 'Text Clipboard',      description: 'Instantly share text clipboards across devices.',   icon: <PixelIcon type="notes"    size={32} />, href: '/tools/dinoshare/text' },
   { title: 'Notes Export',         description: 'Export notes as PDF, JPG, Markdown, or HTML.',       icon: <PixelIcon type="pdf"      size={32} />, href: '/tools/notes' },
+  { title: 'Calorie Counter',     description: 'Look up macros for 300+ foods and build meals.',     icon: <PixelIcon type="fitness"  size={32} />, href: '/tools/fitness/calorie-counter' },
 ];
 
 
